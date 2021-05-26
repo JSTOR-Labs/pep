@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+build() {
+    # overlay squashfs fat vfat loop
+    add_module "overlay"
+    add_module "squashfs"
+    add_module "fat"
+    add_module "vfat"
+    add_module "loop"
+
+    add_file /usr/bin/jstorsig
+    add_file /etc/sigkey.priv.pub
+
+    add_runscript
+}

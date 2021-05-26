@@ -1,0 +1,14 @@
+[Unit]
+Description=AutoSSH tunnel service
+After=network.target
+
+[Service]
+User=autotunnel
+Group=autotunnel
+Environment="AUTOSSH_GATETIME=0"
+ExecStart=/usr/bin/autossh -M 0 18.223.118.191 -NR 0:localhost:22
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

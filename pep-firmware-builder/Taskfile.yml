@@ -1,0 +1,50 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  WORK_DIR: ./work
+  DIST_DIR: ./dist
+
+tasks:
+  prepare:
+    deps: [clean]
+    cmds:
+      - updated/updated prepare {{.VERSION}}
+    generates:
+      - manifest.json
+  root:
+    deps: [prepare]
+    cmds:
+      - ./build_root.sh
+    generates:
+      - work/boot/*
+      - work/mnt/newroot.img
+  package:
+    deps: [root]
+    cmds:
+      - updated/updated package {{.WORK_DIR}}
+    sources:
+      - work/boot/*
+      - work/mnt/newroot.img
+    generates:
+      - dist/*.tar.gz
+  sign:
+    cmds:
+      - updated/updated sign {{.INPUT}} sigkey.priv {{.DIST_DIR}}
+    sources:
+      - dist/*.tar.gz
+    vars:
+      INPUT:
+        sh: find dist -name "*.tar.gz" | head -n1
+  clean:
+    cmds:
+      - rm -rf {{.WORK_DIR}} {{.DIST_DIR}}
+  deploy:
+    cmds:
+      - s3cmd put dist/* s3://org.jstor.labs.pep
+  default:
+    deps:
+      - package
+    cmds:
+      - task: sign

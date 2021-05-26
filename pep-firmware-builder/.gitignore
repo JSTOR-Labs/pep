@@ -1,0 +1,12 @@
+*.pem*
+work/
+dist/
+pep/
+manifest.json
+pep-linux-startup
+escli
+jstorsig
+updated-linux
+.aws/
+.task/
+sigkey.*

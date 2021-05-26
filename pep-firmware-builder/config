@@ -1,0 +1,4 @@
+Host 18.223.118.191
+    User sshtunnel
+    IdentityFile /home/autotunnel/.ssh/pep-tunnel.pem
+    StrictHostKeyChecking no
