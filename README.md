@@ -21,7 +21,7 @@ The new solution is currently being shipping to the test cohort, who will use it
 ### The solution
 The new solution offers a number of advancements that will help increase access for incarcerated researchers to scholarly material. Installed on a small server called a NUC that is not much bigger than a paperback book, the solution contains the JSTOR search index, the full-text content for all open access content, as well as workflow software both to configure the system and to manage students’ requests. When they access it, students conduct searches much as they would on the main JSTOR platform, except that when they find an article, rather than click through to read it, they request the article, where it gets moved into an administrative request queue. This allows administrators to review and fulfill the requests. When connected to the internet, the device will automatically update both functionality and content, dramatically improving the ability to maintain and improve these systems moving forward.
 
-![](http://labs.jstor.org/content/images/2020/03/nucs.jpg)
+![Nucs](https://labs.jstor.org/content/images/2020/03/nucs.jpg)
 
 Each device contains JSTOR's solution for prison education. 
 
@@ -35,7 +35,7 @@ Each device contains JSTOR's solution for prison education.
 
 ### Issue Tracking
 
-:beetle:&nbsp;&nbsp;[Issues](https://github.com/JSTOR-Labs/pep/issues)
+:beetle:&nbsp;&nbsp;[Problem reports and enhancement requests](https://github.com/JSTOR-Labs/pep/issues)
 
 ### Discussion
 
