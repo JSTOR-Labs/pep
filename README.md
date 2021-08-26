@@ -6,7 +6,9 @@
 
 [Online documentation for installing and using the application](https://ithaka.github.io/PEP/site/)
 
-## Code Overview
+## Code
+
+### Architecture Overview
 
 ## License
 
