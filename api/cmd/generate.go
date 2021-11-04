@@ -25,6 +25,7 @@ var (
 	signingKey string
 	esAddr     string
 	sniff      bool
+	webdir     string
 )
 
 // generateCmd represents the generate command
@@ -42,6 +43,7 @@ to quickly create a Cobra application.`,
 		viper.Set("auth.signing_key", signingKey)
 		viper.Set("elasticsearch.address", esAddr)
 		viper.Set("elasticsearch.sniff", sniff)
+		viper.Set("web.root", webdir)
 		viper.SafeWriteConfig()
 	},
 }
@@ -53,6 +55,7 @@ func init() {
 	generateCmd.Flags().StringVarP(&signingKey, "signing_key", "k", "", "Set the signing key")
 	generateCmd.Flags().StringVarP(&esAddr, "elasticsearch_address", "e", "http://localhost:9200", "Set the elasticsearch address")
 	generateCmd.Flags().BoolVarP(&sniff, "elasticsearch_sniff", "s", false, "Enable sniff for the elasticsearch connection")
+	generateCmd.Flags().StringVarP(&webdir, "webroot", "w", "app", "Set the webroot directory")
 
 	// Here you will define your flags and configuration settings.
 

@@ -17,6 +17,7 @@ func SubmitRequests(c echo.Context) error {
 	}
 
 	if s.Name == "" || len(s.Articles) == 0 {
+		c.Logger().Error("Invalid request: ", s)
 		return c.JSON(http.StatusBadRequest, models.Response{
 			Code:    http.StatusBadRequest,
 			Message: "Requests require a name and at least one article",
@@ -40,6 +41,7 @@ func SubmitRequests(c echo.Context) error {
 	request.Documents = documents
 
 	if err := database.PutRequest(request); err != nil {
+		c.Logger().Error("Unable to save request: ", err)
 		return c.JSON(http.StatusInternalServerError, models.Response{Code: http.StatusInternalServerError, Message: "Unable to write to DB"})
 	}
 

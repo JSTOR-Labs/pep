@@ -18,7 +18,6 @@ func init() {
 	if err != nil {
 		panic(fmt.Sprintf("failed to open DB: %v", err))
 	}
-	defer bdb.Close()
 }
 
 func itob(v int) []byte {
@@ -53,9 +52,10 @@ func PutRequest(request *Request) error {
 func GetAdminRequests(pending string) (adminRequests AdminRequests, err error) {
 	adminRequests.Requests = make([]*AdminRequest, 0)
 
+	noIndex := false
 	index, err := pdfs.LoadIndex()
 	if err != nil {
-		return
+		noIndex = true
 	}
 
 	err = bdb.Update(func(tx *bolt.Tx) error {
@@ -107,6 +107,11 @@ func GetAdminRequests(pending string) (adminRequests AdminRequests, err error) {
 						}
 					}
 
+					PDFAvailable := false
+					if !noIndex {
+						PDFAvailable = index.Search(rd.Id)
+					}
+
 					req := &AdminRequest{
 						ID:            rd.Id,
 						RequestID:     r.Id,
@@ -115,7 +120,7 @@ func GetAdminRequests(pending string) (adminRequests AdminRequests, err error) {
 						DateRequested: r.Submitted,
 						NumPages:      int(doc["pageCount"].(float64)),
 						Notes:         r.Notes,
-						PDFAvailable:  index.Search(rd.Id),
+						PDFAvailable:  PDFAvailable,
 						Status:        rd.Status,
 						SrcHTML:       srcHtml,
 					}

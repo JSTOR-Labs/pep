@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  api:
+    build: .
+    ports:
+      - "1323:1323"
+    restart: unless-stopped
+    depends_on:
+      - es
+  es:
+    image: elasticsearch:7.14.2
+    environment:
+      - "discovery.type=single-node"

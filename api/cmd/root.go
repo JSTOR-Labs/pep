@@ -51,6 +51,7 @@ func init() {
 	viper.SetDefault("runtime.flash_drive_mode", false)
 	viper.SetDefault("elasticsearch.address", "http://localhost:9200")
 	viper.SetDefault("elasticsearch.sniff", false)
+	viper.SetDefault("web.root", "app")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
@@ -72,8 +73,9 @@ func initConfig() {
 		cobra.CheckErr(err)
 
 		// Search config in home directory with name ".cobra" (without extension).
+		viper.AddConfigPath("/etc/pep-api")
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".labs")
+		viper.SetConfigName("labs")
 		viper.SetConfigType("toml")
 	}
 

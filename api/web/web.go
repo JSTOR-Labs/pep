@@ -65,7 +65,7 @@ func Listen(port int) {
 	adminGrp.POST("/snapshot", admin.SnapshotStatus)
 	adminGrp.GET("/snapshot", admin.GetRestoreStatus)
 	adminGrp.GET("/indices", admin.GetIndexData)
-	app.Static("/", "app")
+	app.Static("/", viper.GetString("web.root"))
 
 	if !viper.GetBool("runtime.flash_drive_mode") {
 		svc, err := discovery.SetupDiscovery(port)

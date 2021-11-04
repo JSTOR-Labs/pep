@@ -15,6 +15,7 @@ func AdminGetRequests(c echo.Context) error {
 	adminRequests, err := database.GetAdminRequests(pending)
 
 	if err != nil {
+		c.Logger().Error("failed to get admin requests: ", err)
 		return c.JSON(http.StatusInternalServerError, models.Response{
 			Code:    http.StatusInternalServerError,
 			Message: "Unable to fulfill request",

@@ -8,9 +8,7 @@ RUN apk update && apk add --no-cache git ca-certificates tzdata && update-ca-cer
 RUN adduser -D -g '' -h /opt/app appuser
 WORKDIR /opt/build
 COPY . .
-RUN go mod download
-RUN go mod verify
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o api
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod vendor -ldflags="-w -s" -o api
 
 ############################
 # STEP 2 build a small image
@@ -24,7 +22,8 @@ RUN apk add --update libcurl libstdc++ libgcc zlib
 WORKDIR /opt/app/
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /opt/build/api api
+COPY --from=builder /opt/build/dist ./app
 RUN chown -R appuser /opt/app
 USER appuser
-RUN /opt/app/api generate -p ${admin_password} -k ${signing_key} -e ${elastic_addr} -s
+RUN /opt/app/api generate -p ${admin_password} -k ${signing_key} -e ${elastic_addr}
 ENTRYPOINT ["/opt/app/api", "serve"]
