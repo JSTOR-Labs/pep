@@ -65,7 +65,6 @@ github.com/josharian/intern
 github.com/labstack/echo/v4
 github.com/labstack/echo/v4/middleware
 # github.com/labstack/gommon v0.3.0
-## explicit
 github.com/labstack/gommon/bytes
 github.com/labstack/gommon/color
 github.com/labstack/gommon/log
@@ -102,6 +101,12 @@ github.com/olivere/elastic/v7/uritemplates
 github.com/pelletier/go-toml
 # github.com/pkg/errors v0.9.1
 github.com/pkg/errors
+# github.com/rs/zerolog v1.26.0
+## explicit
+github.com/rs/zerolog
+github.com/rs/zerolog/internal/cbor
+github.com/rs/zerolog/internal/json
+github.com/rs/zerolog/log
 # github.com/spf13/afero v1.6.0
 ## explicit
 github.com/spf13/afero
@@ -140,8 +145,7 @@ github.com/vmihailenco/tagparser/v2/internal/parser
 ## explicit
 golang.org/x/crypto/acme
 golang.org/x/crypto/acme/autocert
-# golang.org/x/net v0.0.0-20210428140749-89ef3d95e781
-## explicit
+# golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
 golang.org/x/net/bpf
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2
@@ -152,8 +156,7 @@ golang.org/x/net/internal/iana
 golang.org/x/net/internal/socket
 golang.org/x/net/ipv4
 golang.org/x/net/ipv6
-# golang.org/x/sys v0.0.0-20210426230700-d19ff857e887
-## explicit
+# golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
