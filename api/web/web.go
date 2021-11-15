@@ -2,7 +2,6 @@ package web
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/JSTOR-Labs/pep/api/discovery"
 	"github.com/JSTOR-Labs/pep/api/elasticsearch"
@@ -14,20 +13,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-func writePidFile() error {
-	g, err := os.Create("api.pid")
-	if err != nil {
-		return err
-	}
-
-	_, err = g.WriteString(fmt.Sprintf("%d", os.Getpid()))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func Listen(port int) {
 	app := echo.New()
 	app.Logger.SetLevel(log.INFO)
@@ -38,12 +23,8 @@ func Listen(port int) {
 	app.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: 5,
 	}))
-	err := writePidFile()
-	if err != nil {
-		panic(err.Error())
-	}
 
-	err = elasticsearch.Connect()
+	err := elasticsearch.Connect()
 	if err != nil {
 		app.Logger.Fatal("failed to connect to elasticsearch: ", err)
 	}
