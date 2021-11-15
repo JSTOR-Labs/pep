@@ -20,7 +20,7 @@ func Listen(port int) {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to create syslog writer")
 	}
-	log.Output(zerolog.SyslogLevelWriter(syslogWriter))
+	log.Logger = log.Output(zerolog.SyslogLevelWriter(syslogWriter))
 	log.Info().Msgf("Starting PEP API")
 	app := echo.New()
 	app.HideBanner = true
