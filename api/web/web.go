@@ -1,7 +1,9 @@
 package web
 
 import (
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/JSTOR-Labs/pep/api/discovery"
 	"github.com/JSTOR-Labs/pep/api/elasticsearch"
@@ -23,10 +25,15 @@ func Listen(port int) {
 	app.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: 5,
 	}))
-
-	err := elasticsearch.Connect()
-	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to connect to Elasticsearch")
+	err := errors.New("elasticsearch not connected")
+	tries := 0
+	for err != nil && tries < 10 {
+		err = elasticsearch.Connect()
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to connect to Elasticsearch")
+		}
+		time.Sleep(time.Second * (5 * time.Duration(tries)))
+		tries++
 	}
 
 	app.POST("/search", routes.Search)
