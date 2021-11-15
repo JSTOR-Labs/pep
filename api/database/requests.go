@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"log"
 	"time"
 
 	"github.com/JSTOR-Labs/pep/api/elasticsearch"
@@ -21,7 +21,7 @@ func init() {
 	}
 	bdb, err = bolt.Open(requestsLocation, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
-		panic(fmt.Sprintf("failed to open DB: %v", err))
+		log.Println("[WARN] Failed to open requests database")
 	}
 }
 
