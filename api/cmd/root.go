@@ -84,9 +84,9 @@ func initConfig() {
 		cobra.CheckErr(err)
 
 		// Search config in home directory with name ".cobra" (without extension).
-		viper.AddConfigPath("/etc/pep-api")
+		viper.AddConfigPath("/etc/pep")
 		viper.AddConfigPath(home)
-		viper.SetConfigName("labs")
+		viper.SetConfigName("api")
 		viper.SetConfigType("toml")
 	}
 
