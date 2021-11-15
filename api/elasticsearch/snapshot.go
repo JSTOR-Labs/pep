@@ -3,8 +3,9 @@ package elasticsearch
 import (
 	"context"
 	"errors"
-	"log"
 	"strings"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/JSTOR-Labs/pep/api/globals"
 	"github.com/JSTOR-Labs/pep/api/utils"
@@ -49,7 +50,7 @@ func CreateSnapshot(indices ...string) (string, error) {
 	if !*(resp.Accepted) {
 		return "", errors.New("snapshot not accepted")
 	}
-	log.Println(*(resp.Accepted))
+	log.Debug().Msgf("Snapshot %s accepted", snapshotName)
 	return snapshotName, nil
 }
 
@@ -79,7 +80,7 @@ func LoadSnapshot(addr string, snapshotName string) error {
 		}
 	}
 
-	log.Println(repo)
+	log.Debug().Msgf("Restoring snapshot %s", snapshotName)
 
 	req := driveEs.SnapshotRestore("flashdrive", snapshotName).WaitForCompletion(true)
 

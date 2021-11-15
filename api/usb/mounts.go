@@ -1,3 +1,4 @@
+//go:build linux
 // +build linux
 
 package usb
@@ -5,11 +6,12 @@ package usb
 import (
 	"bufio"
 	"errors"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
 	"syscall"
+
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -61,7 +63,7 @@ func (d *Drive) Mount(rdonly bool) error {
 
 	cmd := exec.Command("/bin/mount", d.drivePath, d.mountPoint, "-o", "uid=elasticsearch,gid=elasticsearch,umask=000")
 	output, err := cmd.CombinedOutput()
-	log.Println(string(output))
+	log.Debug().Err(err).Str("output", string(output)).Msg("mounting drive")
 	if err != nil {
 		return err
 	}

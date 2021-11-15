@@ -1,9 +1,10 @@
 package usb
 
 import (
-	"log"
 	"os/exec"
 	"strings"
+
+	"github.com/rs/zerolog/log"
 )
 
 type BlkIDData struct {
@@ -17,7 +18,7 @@ func BlkID(path string) (*BlkIDData, error) {
 	cmd := exec.Command("/sbin/blkid", path, "-o", "export")
 	out, err := cmd.Output()
 	if err != nil {
-		log.Println(string(out))
+		log.Debug().Err(err).Str("out", string(out)).Msg("blkid failed")
 		return nil, err
 	}
 	var b BlkIDData

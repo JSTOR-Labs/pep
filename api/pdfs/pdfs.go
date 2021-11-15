@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/JSTOR-Labs/pep/api/searchtree"
 	"github.com/spf13/viper"
@@ -87,13 +88,13 @@ func GenerateIndex(root string) error {
 		return nil
 	})
 	if err != nil {
-		log.Println("walk failed: ", err)
+		log.Error().Err(err).Msg("failed to walk PDFs")
 		return err
 	}
 
 	si, err := os.Create("pdfindex.dat")
 	if err != nil {
-		log.Println("failed to create index file: ", err)
+		log.Error().Err(err).Msg("failed to create pdfindex.dat")
 		return err
 	}
 	defer si.Close()
@@ -105,7 +106,7 @@ func GenerateIndex(root string) error {
 
 	sizesIndex, err := os.Create("pdfsizes.json")
 	if err != nil {
-		log.Println("failed to create pdfsizes: ", err)
+		log.Error().Err(err).Msg("failed to create pdfsizes.json")
 		return err
 	}
 	defer sizesIndex.Close()

@@ -4,12 +4,12 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
-	"log"
 	"time"
 
 	"github.com/JSTOR-Labs/pep/api/elasticsearch"
 	"github.com/JSTOR-Labs/pep/api/pdfs"
 	"github.com/boltdb/bolt"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
@@ -21,7 +21,7 @@ func init() {
 	}
 	bdb, err = bolt.Open(requestsLocation, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
-		log.Println("[WARN] Failed to open requests database")
+		log.Warn().Err(err).Msg("Unable to open requests database")
 	}
 }
 

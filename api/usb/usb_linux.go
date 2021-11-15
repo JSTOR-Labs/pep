@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -15,6 +14,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/JSTOR-Labs/pep/api/elasticsearch"
 	"github.com/JSTOR-Labs/pep/api/files"
@@ -61,7 +62,7 @@ func FindUSBDrives() []USBDrive {
 			})
 		}
 	}
-	fmt.Println(drives)
+	log.Debug().Msgf("Found %d USB drives", len(drives))
 	return drives
 }
 
@@ -69,10 +70,10 @@ func FormatDrive(name string) error {
 	mounted := checkMounted(name)
 	if len(mounted) > 0 {
 		for _, drive := range mounted {
-			fmt.Println("Unmounting ", drive)
+			log.Debug().Msgf("Unmounting %s", drive)
 			err := syscall.Unmount(drive, 0)
 			if err != nil {
-				fmt.Println("Unable to unmount drive: ", err)
+				log.Error().Err(err).Msg("Unmounting drive")
 				return err
 			}
 		}
@@ -83,13 +84,13 @@ func FormatDrive(name string) error {
 	// cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println("Unable to create partition table: ", err)
+		log.Error().Err(err).Msg("Failed to create partition table")
 		return err
 	}
 	cmd = exec.Command("/sbin/parted", devicePath, "mkpart", "primary", "ntfs", "0%", "100%", "-s")
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println("Unable to create partition: ", err)
+		log.Error().Err(err).Msg("Failed to create partition")
 		return err
 	}
 	time.Sleep(time.Second * 5)
@@ -98,11 +99,10 @@ func FormatDrive(name string) error {
 	// cmd.Stderr = os.Stderr
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println("Unable to create filesystem: ", err)
+		log.Error().Err(err).Msg("Failed to create filesystem")
 		return err
 	}
 	cmd.Run()
-	// fmt.Println(string(output))
 	return nil
 }
 
@@ -127,7 +127,7 @@ func checkMounted(name string) (out []string) {
 				params := strings.Split(scanner.Text(), " ")
 				unquotedPath, err := strconv.Unquote("\"" + params[1] + "\"")
 				if err != nil {
-					log.Println("failed to unquote drive name: ", err)
+					log.Error().Err(err).Msg("Failed to unquote path")
 					out = append(out, params[1])
 				} else {
 					out = append(out, unquotedPath)
@@ -182,7 +182,7 @@ func BuildFlashDrive(name string, snapshotName string, pdfs []string) error {
 	drive := NewDrive(drivePath, mountPoint)
 	err = drive.Mount(false)
 	if err != nil {
-		log.Println("[ERROR] Unable to mount drive: ", err)
+		log.Error().Err(err).Msg("Failed to mount drive")
 		return err
 	}
 
@@ -284,7 +284,7 @@ func BuildFlashDrive(name string, snapshotName string, pdfs []string) error {
 	})
 
 	if err != nil {
-		log.Println("failed to write es config: ", err)
+		log.Error().Err(err).Msg("Failed to write Elasticsearch config")
 		return err
 	}
 
@@ -292,24 +292,24 @@ func BuildFlashDrive(name string, snapshotName string, pdfs []string) error {
 		defer func() {
 			err = drive.Unmount()
 			if err != nil {
-				fmt.Println("Failed to unmount drive: ", err)
+				log.Error().Err(err).Msg("Failed to unmount drive")
 			}
 			os.Remove(mountPoint)
 		}()
-		log.Println("Waiting for snapshot to complete")
+		log.Debug().Msg("Waiting for snapshot to complete")
 		status := "IN PROGRESS"
 		for status != "SUCCESS" {
 			var err error
 			status, err = elasticsearch.GetSnapshotStatus(snapshotName)
 			if err != nil {
-				log.Println("failed to check elasticsearch snapshot status")
+				log.Error().Err(err).Msg("Failed to get snapshot status")
 				globals.BuildJobs[snapshotName] = 2
 				return
 				// cmd.Process.Signal(syscall.SIGTERM)
 			}
 			time.Sleep(5 * time.Second)
 		}
-		log.Println("Starting flashdrive Elasticsearch...")
+		log.Debug().Msg("Starting flashdrive Elasticsearch")
 
 		u, err := user.Lookup("elasticsearch")
 		if err != nil {
@@ -346,7 +346,7 @@ func BuildFlashDrive(name string, snapshotName string, pdfs []string) error {
 		cmd.Stderr = os.Stderr
 		err = cmd.Run()
 		if err != nil {
-			log.Println("Failed to create Elasticsearch keystore: ", err)
+			log.Error().Err(err).Msg("Failed to create elasticsearch keystore")
 		}
 
 		// Start elasticsearch
@@ -362,7 +362,7 @@ func BuildFlashDrive(name string, snapshotName string, pdfs []string) error {
 		cmd.Stderr = os.Stderr
 		err = cmd.Start() // Run es in the background
 		if err != nil {
-			log.Println("failed to start elasticsearch: ", err)
+			log.Error().Err(err).Msg("Failed to start elasticsearch")
 			globals.BuildJobs[snapshotName] = 2
 			return
 		}
@@ -379,7 +379,7 @@ func BuildFlashDrive(name string, snapshotName string, pdfs []string) error {
 				time.Sleep(time.Second * 1)
 			}
 		}()
-		log.Println("Waiting for Elasticsearch to start")
+		log.Debug().Msg("Waiting for Elasticsearch to start")
 		select {
 		case <-respChan:
 			break
@@ -388,36 +388,36 @@ func BuildFlashDrive(name string, snapshotName string, pdfs []string) error {
 			cmd.Process.Signal(syscall.SIGTERM)
 			err := cmd.Wait()
 			if err != nil {
-				log.Println("Failed to wait for ES to exit: ", err)
+				log.Error().Err(err).Msg("Failed to wait for Elasticsearch to exit")
 				return
 			}
 			if cmd.ProcessState.ExitCode() != 0 {
 				cmdOut, err := cmd.CombinedOutput()
 				if err != nil {
-					log.Println("Elasticsearch failed to start: Output unknown")
+					log.Error().Err(err).Msg("Failed to get output from Elasticsearch")
 				} else {
-					log.Println("Elasticsearch failed to start: ", string(cmdOut))
+					log.Error().Int("exit_code", cmd.ProcessState.ExitCode()).Msgf("Elasticsearch failed to start: %s", string(cmdOut))
 				}
 			} else {
-				log.Println("Timed out waiting for Elasticsearch to start")
+				log.Error().Msg("Timed out waiting for Elasticsearch to start")
 			}
 			return
 		}
 		// time.Sleep(time.Second * 30)
-		log.Println("Elasticsearch started, restoring snapshot")
+		log.Debug().Msg("Elasticsearch started, restoring snapshot")
 		err = elasticsearch.LoadSnapshot("http://localhost:9201", snapshotName)
 		if err != nil {
-			log.Println("failed to load snapshot", err)
+			log.Error().Err(err).Msg("Failed to load snapshot")
 			globals.BuildJobs[snapshotName] = 2
 			cmd.Process.Signal(syscall.SIGTERM)
 			return
 		}
 
-		log.Println("Snapshot restore finished, killing elasticsearch")
+		log.Debug().Msg("Snapshot restore finished, killing elasticsearch")
 
 		cmd.Process.Signal(syscall.SIGTERM)
 
-		log.Println("All done.")
+		log.Debug().Msg("All done.")
 
 		syscall.Sync()
 
