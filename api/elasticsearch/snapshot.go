@@ -70,7 +70,7 @@ func LoadSnapshot(addr string, snapshotName string) error {
 		return err
 	}
 
-	repo, err := driveEs.SnapshotGetRepository("flashdrive").Do(context.Background())
+	_, err = driveEs.SnapshotGetRepository("flashdrive").Do(context.Background())
 	if err != nil {
 		_, err := driveEs.SnapshotCreateRepository("flashdrive").
 			Type("fs").Setting("location", "/mnt/es_backup/flashdrive").
