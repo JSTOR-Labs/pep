@@ -2,7 +2,6 @@ package web
 
 import (
 	"fmt"
-	"log/syslog"
 
 	"github.com/JSTOR-Labs/pep/api/discovery"
 	"github.com/JSTOR-Labs/pep/api/elasticsearch"
@@ -10,17 +9,11 @@ import (
 	"github.com/JSTOR-Labs/pep/api/web/routes/admin"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
 func Listen(port int) {
-	syslogWriter, err := syslog.New(syslog.LOG_INFO, "pepapi")
-	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to create syslog writer")
-	}
-	log.Logger = log.Output(zerolog.SyslogLevelWriter(syslogWriter))
 	log.Info().Msgf("Starting PEP API")
 	app := echo.New()
 	app.HideBanner = true
@@ -31,7 +24,7 @@ func Listen(port int) {
 		Level: 5,
 	}))
 
-	err = elasticsearch.Connect()
+	err := elasticsearch.Connect()
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to connect to Elasticsearch")
 	}
