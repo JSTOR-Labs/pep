@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/JSTOR-Labs/pep/api/elasticsearch"
+	"github.com/JSTOR-Labs/pep/api/pdfs"
 	"github.com/boltdb/bolt"
-	"github.com/ithaka/labs-pep/api/elasticsearch"
-	"github.com/ithaka/labs-pep/api/pdfs"
 )
 
 func init() {

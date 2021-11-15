@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ithaka/labs-pep/api/searchtree"
+	"github.com/JSTOR-Labs/pep/api/searchtree"
 	"github.com/spf13/viper"
 )
 

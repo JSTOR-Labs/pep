@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ithaka/labs-pep/api/database"
-	"github.com/ithaka/labs-pep/api/web/models"
+	"github.com/JSTOR-Labs/pep/api/database"
+	"github.com/JSTOR-Labs/pep/api/web/models"
 	"github.com/labstack/echo/v4"
 )
 

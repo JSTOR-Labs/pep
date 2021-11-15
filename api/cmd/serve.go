@@ -16,7 +16,7 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/ithaka/labs-pep/api/web"
+	"github.com/JSTOR-Labs/pep/api/web"
 	"github.com/spf13/cobra"
 )
 

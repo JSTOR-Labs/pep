@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/JSTOR-Labs/pep/api/web/models"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/ithaka/labs-pep/api/web/models"
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/viper"
 )

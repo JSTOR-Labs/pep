@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/ithaka/labs-pep/api/elasticsearch"
-	"github.com/ithaka/labs-pep/api/globals"
+	"github.com/JSTOR-Labs/pep/api/elasticsearch"
+	"github.com/JSTOR-Labs/pep/api/globals"
 	"github.com/labstack/echo/v4"
 	"github.com/olivere/elastic/v7"
 )

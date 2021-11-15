@@ -1,4 +1,4 @@
-module github.com/ithaka/labs-pep/api
+module github.com/JSTOR-Labs/pep/api
 
 go 1.16
 

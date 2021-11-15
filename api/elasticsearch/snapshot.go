@@ -6,8 +6,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/ithaka/labs-pep/api/globals"
-	"github.com/ithaka/labs-pep/api/utils"
+	"github.com/JSTOR-Labs/pep/api/globals"
+	"github.com/JSTOR-Labs/pep/api/utils"
 	"github.com/olivere/elastic/v7"
 	"github.com/olivere/elastic/v7/config"
 )

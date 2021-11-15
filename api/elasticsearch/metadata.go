@@ -3,9 +3,9 @@ package elasticsearch
 import (
 	"context"
 
-	"github.com/ithaka/labs-pep/api/globals"
-	"github.com/ithaka/labs-pep/api/pdfs"
-	"github.com/ithaka/labs-pep/api/utils"
+	"github.com/JSTOR-Labs/pep/api/globals"
+	"github.com/JSTOR-Labs/pep/api/pdfs"
+	"github.com/JSTOR-Labs/pep/api/utils"
 )
 
 func GetIndexMetadata() ([]*IndexMetadata, error) {

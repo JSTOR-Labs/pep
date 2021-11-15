@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ithaka/labs-pep/api/web/models"
+	"github.com/JSTOR-Labs/pep/api/web/models"
 	"github.com/labstack/echo/v4"
 )
 

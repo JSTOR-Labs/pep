@@ -4,10 +4,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ithaka/labs-pep/api/elasticsearch"
-	"github.com/ithaka/labs-pep/api/globals"
-	"github.com/ithaka/labs-pep/api/usb"
-	"github.com/ithaka/labs-pep/api/web/models"
+	"github.com/JSTOR-Labs/pep/api/elasticsearch"
+	"github.com/JSTOR-Labs/pep/api/globals"
+	"github.com/JSTOR-Labs/pep/api/usb"
+	"github.com/JSTOR-Labs/pep/api/web/models"
 	"github.com/labstack/echo/v4"
 )
 

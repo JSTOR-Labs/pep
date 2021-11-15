@@ -1,6 +1,6 @@
 package models
 
-import "github.com/ithaka/labs-pep/api/database"
+import "github.com/JSTOR-Labs/pep/api/database"
 
 // Response represents a response to a submission endpoint
 type (

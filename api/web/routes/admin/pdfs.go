@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/ithaka/labs-pep/api/pdfs"
-	"github.com/ithaka/labs-pep/api/web/models"
+	"github.com/JSTOR-Labs/pep/api/pdfs"
+	"github.com/JSTOR-Labs/pep/api/web/models"
 	"github.com/labstack/echo/v4"
 )
 

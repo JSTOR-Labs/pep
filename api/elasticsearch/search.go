@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ithaka/labs-pep/api/globals"
+	"github.com/JSTOR-Labs/pep/api/globals"
 	"github.com/olivere/elastic/v7"
 )
 

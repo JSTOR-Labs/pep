@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ithaka/labs-pep/api/globals"
+	"github.com/JSTOR-Labs/pep/api/globals"
 	"github.com/olivere/elastic/v7"
 	"github.com/spf13/viper"
 )
