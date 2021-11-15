@@ -16,8 +16,12 @@ limitations under the License.
 package cmd
 
 import (
+	"os"
+
 	"github.com/JSTOR-Labs/pep/api/web"
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -35,6 +39,11 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if !viper.GetBool("runtime.flash_drive_mode") {
+			home, err := homedir.Dir()
+			cobra.CheckErr(err)
+			os.Chdir(home)
+		}
 		web.Listen(Port)
 	},
 }

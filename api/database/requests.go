@@ -10,11 +10,16 @@ import (
 	"github.com/JSTOR-Labs/pep/api/elasticsearch"
 	"github.com/JSTOR-Labs/pep/api/pdfs"
 	"github.com/boltdb/bolt"
+	"github.com/spf13/viper"
 )
 
 func init() {
 	var err error
-	bdb, err = bolt.Open("requests.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
+	requestsLocation := "requests.db"
+	if !viper.GetBool("runtime.flash_drive_mode") {
+		requestsLocation = "/mnt/data/" + requestsLocation
+	}
+	bdb, err = bolt.Open(requestsLocation, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		panic(fmt.Sprintf("failed to open DB: %v", err))
 	}
