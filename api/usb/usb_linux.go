@@ -21,6 +21,7 @@ import (
 	"github.com/JSTOR-Labs/pep/api/files"
 	"github.com/JSTOR-Labs/pep/api/globals"
 	"github.com/JSTOR-Labs/pep/api/utils"
+	"github.com/JSTOR-Labs/pep/api/which"
 	"github.com/jaypipes/ghw"
 	"github.com/vmihailenco/msgpack/v5"
 	"gopkg.in/yaml.v2"
@@ -80,7 +81,7 @@ func FormatDrive(name string) error {
 		}
 	}
 	devicePath := fmt.Sprintf("/dev/%s", name)
-	cmd := exec.Command("/sbin/parted", devicePath, "mklabel", "gpt", "-s")
+	cmd := exec.Command(which.LookupExecutable("parted"), devicePath, "mklabel", "gpt", "-s")
 	// cmd.Stdout = os.Stdout
 	// cmd.Stderr = os.Stderr
 	err := cmd.Run()
@@ -88,14 +89,14 @@ func FormatDrive(name string) error {
 		log.Error().Err(err).Msg("Failed to create partition table")
 		return err
 	}
-	cmd = exec.Command("/sbin/parted", devicePath, "mkpart", "primary", "ntfs", "0%", "100%", "-s")
+	cmd = exec.Command(which.LookupExecutable("parted"), devicePath, "mkpart", "primary", "ntfs", "0%", "100%", "-s")
 	err = cmd.Run()
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to create partition")
 		return err
 	}
 	time.Sleep(time.Second * 5)
-	cmd = exec.Command("/sbin/mkfs.exfat", fmt.Sprintf("%s%d", devicePath, 1))
+	cmd = exec.Command(which.LookupExecutable("mkfs.exfat"), fmt.Sprintf("%s%d", devicePath, 1))
 	// cmd.Stdout = os.Stdout
 	// cmd.Stderr = os.Stderr
 	err = cmd.Run()

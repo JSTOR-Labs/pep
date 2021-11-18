@@ -11,6 +11,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/JSTOR-Labs/pep/api/which"
 	"github.com/rs/zerolog/log"
 )
 
@@ -61,7 +62,7 @@ func (d *Drive) Mount(rdonly bool) error {
 		flags |= syscall.MS_RDONLY
 	}
 
-	cmd := exec.Command("/bin/mount", d.drivePath, d.mountPoint, "-o", "uid=elasticsearch,gid=elasticsearch,umask=000")
+	cmd := exec.Command(which.LookupExecutable("mount"), d.drivePath, d.mountPoint, "-o", "uid=elasticsearch,gid=elasticsearch,umask=000")
 	output, err := cmd.CombinedOutput()
 	log.Debug().Err(err).Str("output", string(output)).Msg("mounting drive")
 	if err != nil {
@@ -76,7 +77,7 @@ func (d *Drive) Unmount() error {
 	if !d.mounted {
 		return ErrNotMounted
 	}
-	cmd := exec.Command("/bin/umount", d.drivePath)
+	cmd := exec.Command(which.LookupExecutable("umount"), d.drivePath)
 	err := cmd.Run()
 	if err != nil {
 		return ErrMountingFailure

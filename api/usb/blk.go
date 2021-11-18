@@ -4,6 +4,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/JSTOR-Labs/pep/api/which"
 	"github.com/rs/zerolog/log"
 )
 
@@ -15,7 +16,7 @@ type BlkIDData struct {
 }
 
 func BlkID(path string) (*BlkIDData, error) {
-	cmd := exec.Command("/sbin/blkid", path)
+	cmd := exec.Command(which.LookupExecutable("blkid"), path)
 	out, err := cmd.Output()
 	if err != nil {
 		log.Warn().Err(err).Str("out", string(out)).Msg("blkid failed")
