@@ -11,11 +11,13 @@ import (
 	"github.com/JSTOR-Labs/pep/api/web/routes/admin"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
 func Listen(port int) {
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	log.Info().Msgf("Starting PEP API")
 	app := echo.New()
 	app.HideBanner = true

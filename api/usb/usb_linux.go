@@ -33,6 +33,7 @@ func FindUSBDrives() []USBDrive {
 		fmt.Printf("Error gettin block storage info: %v", err)
 	}
 	for _, disk := range block.Disks {
+		log.Debug().Str("disk", disk.Name).Str("bus_path", disk.BusPath).Msg("Found disk")
 		if strings.Contains(disk.BusPath, "usb") {
 			// we found a usb device
 			partitions := make([]Partition, 0)

@@ -15,21 +15,21 @@ type BlkIDData struct {
 }
 
 func BlkID(path string) (*BlkIDData, error) {
-	cmd := exec.Command("/sbin/blkid", path, "-o", "export")
+	cmd := exec.Command("/sbin/blkid", path)
 	out, err := cmd.Output()
 	if err != nil {
-		log.Debug().Err(err).Str("out", string(out)).Msg("blkid failed")
+		log.Warn().Err(err).Str("out", string(out)).Msg("blkid failed")
 		return nil, err
 	}
 	var b BlkIDData
 	rawData := make(map[string]string)
-	fields := strings.Split(string(out), "\n")
-	for _, field := range fields {
+	fields := strings.Split(string(out), " ")
+	for _, field := range fields[0:] {
 		values := strings.Split(field, "=")
 		if len(values) < 2 {
 			continue
 		}
-		rawData[values[0]] = values[1]
+		rawData[values[0]] = strings.Trim(values[1], "\"")
 	}
 	setValue(rawData, "UUID", &b.UUID)
 	setValue(rawData, "TYPE", &b.Type)

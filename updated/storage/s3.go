@@ -27,6 +27,12 @@ type File struct {
 	Group     int
 }
 
+type Versions struct {
+	Latest    string
+	Stable    string
+	Manifests map[string]string // key is the version, value is the manifest filename
+}
+
 // Manifest represents the update manifest
 type Manifest struct {
 	Updated time.Time
