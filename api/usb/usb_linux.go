@@ -190,11 +190,13 @@ func BuildFlashDrive(name string, snapshotName string, pdfs []string) error {
 
 	javaPath, err := files.DownloadFile(files.JavaURL, "OpenJDK11U-jre_x64_windows_hotspot_11.0.10_9.zip")
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to download java")
 		return err
 	}
 
 	elasticPath, err := files.DownloadFile(files.ElasticURL, "elasticsearch-7.10.2-no-jdk-windows-x86_64.zip")
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to download elasticsearch")
 		return err
 	}
 	var javaFiles []string
@@ -202,12 +204,14 @@ func BuildFlashDrive(name string, snapshotName string, pdfs []string) error {
 		defer f.Close()
 		javaFiles, err = files.Untar(mountPoint, f)
 		if err != nil {
+			log.Error().Err(err).Msg("Failed to untar java")
 			return err
 		}
 	}
 
 	esFiles, err := files.Unzip(elasticPath, mountPoint)
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to unzip elasticsearch")
 		return err
 	}
 

@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -41,17 +43,22 @@ func DownloadFile(url, filename string) (string, error) {
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to create request")
 		return "", err
 	}
 
+	req.Header.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36")
+
 	res, err := client.Do(req)
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to download file")
 		return "", err
 	}
 	defer res.Body.Close()
 
 	out, err := os.Create(filepath.Join(CachePath, filename))
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to create file")
 		return "", err
 	}
 	defer out.Close()
