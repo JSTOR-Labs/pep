@@ -253,7 +253,7 @@ func BuildFlashDrive(name string, snapshotName string, pdfs []string) error {
 
 	cfg.WriteConfigAs(filepath.Join(mountPoint, "api.toml"))
 
-	f, err := os.Open("templates/start.bat")
+	f, err := os.Open("/usr/share/pep/start.bat")
 	if err != nil {
 		return err
 	}
