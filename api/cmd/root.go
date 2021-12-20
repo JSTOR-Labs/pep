@@ -16,10 +16,8 @@ limitations under the License.
 package cmd
 
 import (
-	"log/syslog"
-
+	"github.com/JSTOR-Labs/pep/api/logger"
 	"github.com/mitchellh/go-homedir"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -39,12 +37,7 @@ var rootCmd = &cobra.Command{
 		cmd.Help()
 	},
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		syslogWriter, err := syslog.New(syslog.LOG_INFO, "pepapi")
-		if err != nil {
-			log.Warn().Err(err).Msg("Failed to create syslog writer")
-		} else {
-			log.Logger = log.Output(zerolog.SyslogLevelWriter(syslogWriter))
-		}
+		logger.SetupLogger()
 		return nil
 	},
 }

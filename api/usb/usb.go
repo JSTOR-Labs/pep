@@ -1,3 +1,4 @@
+//go:build !linux
 // +build !linux
 
 package usb
@@ -7,14 +8,14 @@ This file provides the functions from usb_linux, they are effectively noop on ot
 due to no support from the supporting libraries on other platforms
 */
 
-func findUSBDrives() []USBDrive {
+func FindUSBDrives() []USBDrive {
 	return make([]USBDrive, 0)
 }
 
-func formatDrive(_ string) error {
+func FormatDrive(_ string) error {
 	return nil
 }
 
-func initializeDrive(_ string, _ string, _ []string) error {
+func BuildFlashDrive(_ string, _ string, _ []string) error {
 	return nil
 }
