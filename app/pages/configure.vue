@@ -146,8 +146,8 @@
     }),
     mounted() {
       this.getContents()
-      console.log(this.partitionSize)
-      this.partitionSizeNum = this.partitionSize / (1024 * 1024) // convert KB to GB
+      console.log("this.partitionSize" + this.partitionSize)
+      this.partitionSizeNum = this.partitionSize // convert KB to GB
       this.totalSize = this.systemDataSize
       this.resetLists()
     },
