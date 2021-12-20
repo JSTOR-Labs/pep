@@ -138,7 +138,7 @@
                 thePartition = this.drive['partitions'][j]
                 this.setPartitionName(thePartition.name);
                 console.log('the partition ', thePartition)
-               this.setPartitionSize(thePartition.size);
+               this.setPartitionSize(thePartition.sizeKB);
                this.$router.push({
                  path: '/configure'
                })
@@ -166,7 +166,7 @@
         if (resp.code === 200 ) {
           console.log('this.drive ', this.drive)
           this.setPartitionName(this.drive['partitions'][0].name)
-          this.setPartitionSize(this.drive['partitions'][0].size)
+          this.setPartitionSize(this.drive['partitions'][0].sizeKB)
           this.$router.push({
             path: '/configure'
           })
