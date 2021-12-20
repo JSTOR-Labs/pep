@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 
 	"github.com/JSTOR-Labs/pep/api/elasticsearch"
 	"github.com/JSTOR-Labs/pep/api/files"
@@ -215,12 +216,12 @@ func BuildFlashDrive(name string, snapshotName string, pdfs []string) error {
 		return err
 	}
 
-	err = files.CopyFile("/home/jstor/pep/api.exe", fmt.Sprintf("%s/api.exe", mountPoint))
+	err = files.CopyFile("/usr/share/pep/pepapi.exe", fmt.Sprintf("%s/api.exe", mountPoint))
 	if err != nil {
 		return err
 	}
 
-	err = files.CopyRecursive("/home/jstor/pep/app", mountPoint)
+	err = files.CopyRecursive(viper.GetString("web.root"), mountPoint)
 	if err != nil {
 		return err
 	}
@@ -242,6 +243,15 @@ func BuildFlashDrive(name string, snapshotName string, pdfs []string) error {
 	// Template out the batch file
 	esRoot := strings.ReplaceAll(esFiles[0], "/", "\\")
 	javaRoot := strings.ReplaceAll(javaFiles[0], "/", "\\")
+
+	cfg := viper.New()
+	cfg.Set("auth.password", viper.GetString("auth.password"))
+	cfg.Set("auth.signing_key", viper.GetString("auth.signing_key"))
+	cfg.Set("elasticsearch.address", "http://localhost:9201")
+	cfg.Set("runtime.flash_drive_mode", true)
+	cfg.Set("web.root", "./app")
+
+	cfg.WriteConfigAs(filepath.Join(mountPoint, "api.toml"))
 
 	f, err := os.Open("templates/start.bat")
 	if err != nil {
