@@ -62,6 +62,11 @@ func checkUpdate() error {
 
 	if _, err := os.Stat(KernelUpdatePath); err == nil {
 		log.Info().Msg("kernel update found, installing")
+
+		if err := MkDirsAll(BootVolumeMountPoint); err != nil {
+			return err
+		}
+
 		if err := syscall.Mount(BootVolumeDevPath, BootVolumeMountPoint, "vfat", syscall.MS_NOATIME, "iocharset=utf8"); err != nil {
 			return err
 		}
