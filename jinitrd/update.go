@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"os"
 	"syscall"
 
@@ -18,6 +19,27 @@ const (
 	KernelFullPath             = BootVolumeMountPoint + "/bzImage"
 )
 
+func moveFile(src, dst string) error {
+	inputFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+
+	outputFile, err := os.Create(dst)
+	if err != nil {
+		inputFile.Close()
+		return err
+	}
+	defer outputFile.Close()
+	_, err = io.Copy(outputFile, inputFile)
+	inputFile.Close()
+	if err != nil {
+		return err
+	}
+
+	return os.Remove(src)
+}
+
 func checkUpdate() error {
 	if err := MkDirsAll(PersistentVolumeMountPoint); err != nil {
 		return err
@@ -33,7 +55,7 @@ func checkUpdate() error {
 
 	if _, err := os.Stat(RootFSUpdatePath); err == nil {
 		log.Info().Msg("root filesystem update found, installing")
-		if err := os.Rename(RootFSUpdatePath, RootFSFullPath); err != nil {
+		if err := moveFile(RootFSUpdatePath, RootFSFullPath); err != nil {
 			return err
 		}
 	}
@@ -50,7 +72,7 @@ func checkUpdate() error {
 			}
 		}()
 
-		if err := os.Rename(KernelUpdatePath, KernelFullPath); err != nil {
+		if err := moveFile(KernelUpdatePath, KernelFullPath); err != nil {
 			return err
 		}
 	}

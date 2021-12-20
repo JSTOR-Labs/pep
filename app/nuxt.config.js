@@ -71,7 +71,7 @@ export default {
   */
   axios: {
     //baseURL: 'http://labs-pep-go.test.cirrostratus.org/'
-    //baseURL: 'http://127.0.0.1:3000',
+    // baseURL: 'http://192.168.1.127:1323/',
     credentials: true
   },
   /*

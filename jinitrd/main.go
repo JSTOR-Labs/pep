@@ -168,7 +168,6 @@ func main() {
 		rootPath = RootFSPath
 	}
 	rootFullPath := filepath.Join(InitialFSMount, rootPath)
-
 	log.Info().Str("path", rootFullPath).Msg("looping root filesystem")
 	// Create new loop device
 	dev, err := losetup.Attach(rootFullPath, 0, true)
