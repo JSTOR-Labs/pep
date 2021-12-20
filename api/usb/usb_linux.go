@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"syscall"
@@ -200,6 +201,9 @@ func BuildFlashDrive(name string, snapshotName string, pdfs []string) error {
 		return err
 	}
 
+	log.Info().Msg("Garbage collecting java")
+	runtime.GC()
+
 	elasticVersion := "7.15.2"
 
 	elasticPath, err := files.DownloadFile(files.GetElasticURL(elasticVersion), fmt.Sprintf("elasticsearch-%s-no-jdk-windows-x86_64.zip", elasticVersion))
@@ -213,6 +217,9 @@ func BuildFlashDrive(name string, snapshotName string, pdfs []string) error {
 		log.Error().Err(err).Msg("Failed to unzip elasticsearch")
 		return err
 	}
+
+	log.Info().Msg("Garbage collecting elasticsearch")
+	runtime.GC()
 
 	err = files.CopyFile("/usr/share/pep/pepapi.exe", fmt.Sprintf("%s/api.exe", mountPoint))
 	if err != nil {
