@@ -18,10 +18,14 @@ import (
 )
 
 const (
-	CachePath  = "/mnt/cache/"
-	ElasticURL = "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.10.2-no-jdk-windows-x86_64.zip"
-	JavaURL    = "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.13%2B8/OpenJDK11U-jre_x64_linux_hotspot_11.0.13_8.tar.gz"
+	CachePath     = "/mnt/cache/"
+	ElasticURLFmt = "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-%s-no-jdk-windows-x86_64.zip"
+	JavaURL       = "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.13%2B8/OpenJDK11U-jre_x64_windows_hotspot_11.0.13_8.zip"
 )
+
+func GetElasticURL(version string) string {
+	return fmt.Sprintf(ElasticURLFmt, version)
+}
 
 func checkCache(filename string) (string, bool) {
 	if _, err := os.Stat(CachePath); err != nil {
@@ -52,7 +56,6 @@ func DownloadFile(url, filename string) (string, error) {
 			},
 		},
 	}
-
 	dialContext := func(ctx context.Context, network, addr string) (net.Conn, error) {
 		return dialer.DialContext(ctx, network, addr)
 	}
