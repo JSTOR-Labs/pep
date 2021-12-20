@@ -197,11 +197,15 @@ func BuildFlashDrive(name string, snapshotName string, pdfs []string) error {
 	if err != nil {
 		return err
 	}
-
-	javaFiles, err := files.Unzip(javaPath, mountPoint)
-	if err != nil {
-		return err
+	var javaFiles []string
+	if f, err := os.Open(javaPath); err == nil {
+		defer f.Close()
+		javaFiles, err = files.Untar(mountPoint, f)
+		if err != nil {
+			return err
+		}
 	}
+
 	esFiles, err := files.Unzip(elasticPath, mountPoint)
 	if err != nil {
 		return err

@@ -1,7 +1,9 @@
 package files
 
 import (
+	"archive/tar"
 	"archive/zip"
+	"compress/gzip"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,9 +14,9 @@ import (
 )
 
 const (
-	CachePath  = "cache/"
+	CachePath  = "/mnt/cache/"
 	ElasticURL = "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.10.2-no-jdk-windows-x86_64.zip"
-	JavaURL    = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.10%2B9/OpenJDK11U-jre_x64_windows_hotspot_11.0.10_9.zip"
+	JavaURL    = "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.13%2B8/OpenJDK11U-jre_x64_linux_hotspot_11.0.13_8.tar.gz"
 )
 
 func checkCache(filename string) (string, bool) {
@@ -48,14 +50,81 @@ func DownloadFile(url, filename string) (string, error) {
 	}
 	defer res.Body.Close()
 
-	out, err := os.Create(CachePath + filename)
+	out, err := os.Create(filepath.Join(CachePath, filename))
 	if err != nil {
 		return "", err
 	}
 	defer out.Close()
 
 	_, err = io.Copy(out, res.Body)
-	return CachePath + filename, err
+	return filepath.Join(CachePath, filename), err
+}
+
+func Untar(dst string, r io.Reader) ([]string, error) {
+	var filenames []string
+	gzr, err := gzip.NewReader(r)
+	if err != nil {
+		return filenames, err
+	}
+	defer gzr.Close()
+
+	tr := tar.NewReader(gzr)
+
+	for {
+		header, err := tr.Next()
+
+		switch {
+
+		// if no more files are found return
+		case err == io.EOF:
+			return filenames, nil
+
+		// return any other error
+		case err != nil:
+			return filenames, err
+
+		// if the header is nil, just skip it (not sure how this happens)
+		case header == nil:
+			continue
+		}
+
+		filenames = append(filenames, header.Name)
+
+		// the target location where the dir/file should be created
+		target := filepath.Join(dst, header.Name)
+
+		// the following switch could also be done using fi.Mode(), not sure if there
+		// a benefit of using one vs. the other.
+		// fi := header.FileInfo()
+
+		// check the file type
+		switch header.Typeflag {
+
+		// if its a dir and it doesn't exist create it
+		case tar.TypeDir:
+			if _, err := os.Stat(target); err != nil {
+				if err := os.MkdirAll(target, 0755); err != nil {
+					return filenames, err
+				}
+			}
+
+		// if it's a file create it
+		case tar.TypeReg:
+			f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
+			if err != nil {
+				return filenames, err
+			}
+
+			// copy over contents
+			if _, err := io.Copy(f, tr); err != nil {
+				return filenames, err
+			}
+
+			// manually close here after each file operation; defering would cause each file close
+			// to wait until all operations have completed.
+			f.Close()
+		}
+	}
 }
 
 // Unzip will take a zip file path as src, and unzip it to the dest
