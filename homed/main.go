@@ -6,7 +6,23 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 )
+
+func init() {
+	viper.SetConfigType("toml")
+	viper.SetConfigName("homed")
+	viper.AddConfigPath("/etc/pep")
+	viper.AddConfigPath(".")
+
+	viper.AutomaticEnv()
+
+	if err := viper.ReadInConfig(); err == nil {
+		log.Info().Msgf("Using config file: %s", viper.ConfigFileUsed())
+	}
+}
 
 func main() {
 	done := make(chan bool)
