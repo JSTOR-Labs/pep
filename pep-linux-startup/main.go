@@ -56,6 +56,9 @@ func recursiveChown(path string, uid, gid int) error {
 }
 
 func main() {
+	// Ensure we're using the new filesystem layout
+	migrateFromArch()
+
 	// Look up elasticsearch user
 	uid, err := getUserID("elasticsearch")
 	if err != nil {
@@ -98,19 +101,19 @@ func main() {
 		log.Fatal().Msg("Failed to get path.data from elasticsearch.yml")
 	}
 
-	if !dirExists("/mnt/es_backup") {
+	if !pathExists("/mnt/es_backup") {
 		if err := os.Mkdir("/mnt/es_backup", 0755); err != nil {
 			log.Fatal().Err(err).Msg("Failed to create /mnt/es_backup")
 		}
 	}
 
-	if !dirExists("/mnt/data") {
+	if !pathExists("/mnt/data") {
 		if err := os.Mkdir("/mnt/es_backup", 0755); err != nil {
 			log.Fatal().Err(err).Msg("Failed to create /mnt/data")
 		}
 	}
 
-	if !dirExists(dataDir) {
+	if !pathExists(dataDir) {
 		if err := os.Mkdir(dataDir, 0755); err != nil {
 			log.Fatal().Err(err).Msg("Failed to create data directory")
 		}
@@ -128,9 +131,4 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to chown pepapi data directory")
 	}
-}
-
-func dirExists(dir string) bool {
-	_, err := os.Stat(dir)
-	return !os.IsNotExist(err)
 }

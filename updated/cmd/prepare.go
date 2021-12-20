@@ -26,7 +26,7 @@ import (
 
 // prepareCmd represents the prepare command
 var prepareCmd = &cobra.Command{
-	Use:   "prepare",
+	Use:   "prepare [version]",
 	Short: "Prepare's a manifest for a new update",
 	Long:  `Prepares a manifest for a new update prior to building a new root`,
 	Args:  cobra.ExactArgs(1),
