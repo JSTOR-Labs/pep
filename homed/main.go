@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"net/http"
 	"os"
 	"os/signal"
@@ -25,6 +26,14 @@ func init() {
 }
 
 func main() {
+	cfg := flag.String("url", "", "Home URL")
+	flag.Parse()
+	if cfg != nil {
+		viper.Set("homed.url", *cfg)
+		viper.WriteConfigAs("homed.toml")
+		return
+	}
+
 	done := make(chan bool)
 
 	c := make(chan os.Signal, 1)
