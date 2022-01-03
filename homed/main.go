@@ -27,8 +27,11 @@ func init() {
 
 func main() {
 	cfg := flag.String("url", "", "Home URL")
+	version := flag.String("version", "", "Write a version to the config file")
 	flag.Parse()
 	if cfg != nil {
+		viper.Set("system.version", *version)
+		viper.Set("system.buildtime", time.Now())
 		viper.Set("homed.url", *cfg)
 		viper.WriteConfigAs("homed.toml")
 		return

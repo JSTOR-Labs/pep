@@ -11,6 +11,7 @@ import (
 	"github.com/JSTOR-Labs/pep/homed/netdev"
 	"github.com/JSTOR-Labs/pep/homed/payloads"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 )
 
 func NewDaemon(client *http.Client, done chan bool) *Daemon {
@@ -61,7 +62,8 @@ func (d *Daemon) ping() {
 		HasErrors:  d.checkErrors(),
 		Version: payloads.VersionInfo{
 			// TODO: Get version from somewhere
-			Date: time.Now(),
+			Date:    viper.GetTime("system.buildtime"),
+			Version: viper.GetString("system.version"),
 		},
 	}
 
