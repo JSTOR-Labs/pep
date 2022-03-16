@@ -8,9 +8,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+var (
+	PersistentVolumeDevPath = "/dev/sdb1"
+	BootVolumeDevPath       = "/dev/sda1"
+	InitialFSPath           = "/dev/sda2"
+)
+
 const (
-	PersistentVolumeDevPath    = "/dev/sdb1"
-	BootVolumeDevPath          = "/dev/sda1"
 	PersistentVolumeMountPoint = "/mnt/persist"
 	BootVolumeMountPoint       = "/mnt/boot"
 	UpdateStagingPath          = PersistentVolumeMountPoint + "/update"

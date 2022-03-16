@@ -4,7 +4,7 @@
 package usb
 
 /*
- #cgo LDFLAGS: -lblkid
+#cgo LDFLAGS: -lblkid
 #include "blkid/blkid.h"
 #include "string.h"
 #include "stdlib.h"

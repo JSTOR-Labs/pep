@@ -22,7 +22,6 @@ ro_root=<path> // The path on the host filesystem to the root filesystem
 
 // This is a very static environment, lets just hardcode some values
 const (
-	InitialFSPath  = "/dev/sda2"
 	RootFSPath     = "/rootfs.squashfs"
 	InitialFSMount = "/mnt/rw"
 	RootFSFullPath = InitialFSMount + RootFSPath
