@@ -6,13 +6,13 @@ CPIOOUT=initramfs.img
 BINDIR=$(OUTDIR)/bin
 BINARY=jinitrd
 
-LDFLAGS=-ldflags="-s -w -X 'main.PersistentVolumeDevPath=$(PERSISTENT_VOLUME)' -X 'main.BootVolumeDevPath=$(BOOT_VOLUME)' -X 'main.InitialFSPath=$(ROOT_VOLUME)'"
+LDFLAGS=-s -w -X 'main.PersistentVolumeDevPath=$(PERSISTENT_VOLUME)' -X 'main.BootVolumeDevPath=$(BOOT_VOLUME)' -X 'main.InitialFSPath=$(ROOT_VOLUME)'
 
 all: $(CPIOOUT)
 
 $(BINDIR)/$(BINARY):
 	mkdir -p $(BINDIR)
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o $(BINDIR)/$(BINARY)
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -ldflags="$(LDFLAGS)" -o $(BINDIR)/$(BINARY)
 
 clean:
 	rm -rf $(OUTDIR)
