@@ -8,7 +8,7 @@ BINARY=jinitrd
 
 LDFLAGS=-ldflags="-s -w -X 'main.PersistentVolumeDevPath=$(PERSISTENT_VOLUME)' -X 'main.BootVolumeDevPath=$(BOOT_VOLUME)' -X 'main.InitialFSPath=$(ROOT_VOLUME)'"
 
-all: cpio
+all: $(CPIOOUT)
 
 $(BINDIR)/$(BINARY):
 	mkdir -p $(BINDIR)
