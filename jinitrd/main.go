@@ -44,8 +44,8 @@ func (h FailureHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
 }
 
 func Fail() {
-	log.Error().Msg("rebooting in 10 seconds")
-	time.Sleep(10 * time.Second)
+	log.Error().Msg("rebooting in 60 seconds")
+	time.Sleep(60 * time.Second)
 	syscall.Sync()
 	syscall.Reboot(syscall.LINUX_REBOOT_CMD_RESTART)
 }
@@ -170,6 +170,12 @@ func main() {
 		rootPath = RootFSPath
 	}
 	rootFullPath := filepath.Join(InitialFSMount, rootPath)
+	log.Info().Str("path", rootFullPath).Msg("Ensuring root FS exists")
+	if _, err := os.Stat(rootFullPath); errors.Is(err, os.ErrNotExist) {
+		log.Error().Err(err).Msg("Root FS does not exist in expected path")
+		Fail()
+	}
+
 	log.Info().Str("path", rootFullPath).Msg("looping root filesystem")
 	// Create new loop device
 	dev, err := losetup.Attach(rootFullPath, 0, true)
@@ -194,18 +200,22 @@ func main() {
 
 func rootFS(dev string) error {
 	if err := syscall.Mount("tmpfs", OverlayFSPath, "tmpfs", syscall.MS_NOSUID|syscall.MS_NODEV, "size=1G"); err != nil {
+		log.Error().Err(err).Msg("failed to mount tmpfs upper")
 		return err
 	}
 
 	if err := MkDirsAll(OverlayUpper, OverlayWork); err != nil {
+		log.Error().Err(err).Msg("failed to create upper and work dirs")
 		return err
 	}
 
 	if err := syscall.Mount(dev, OverlayLower, "squashfs", syscall.MS_RDONLY, ""); err != nil {
+		log.Error().Err(err).Msg("failed to mount lower")
 		return err
 	}
 
 	if err := syscall.Mount("overlay", RootFSMount, "overlay", 0, "lowerdir="+OverlayLower+",upperdir="+OverlayUpper+",workdir="+OverlayWork); err != nil {
+		log.Error().Err(err).Msg("failed to mount overlay")
 		return err
 	}
 
