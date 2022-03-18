@@ -21,8 +21,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/ithaka/labs-pep/updated/storage"
-	"github.com/ithaka/labs-pep/updated/utils"
+	"github.com/JSTOR-Labs/pep/updated/storage"
+	"github.com/JSTOR-Labs/pep/updated/utils"
 	"github.com/spf13/cobra"
 )
 

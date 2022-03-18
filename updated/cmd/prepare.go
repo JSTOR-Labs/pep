@@ -20,7 +20,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ithaka/labs-pep/updated/storage"
+	"github.com/JSTOR-Labs/pep/updated/storage"
 	"github.com/spf13/cobra"
 )
 

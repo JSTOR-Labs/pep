@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ithaka/labs-pep/updated/daemon"
+	"github.com/JSTOR-Labs/pep/updated/daemon"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

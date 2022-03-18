@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "github.com/ithaka/labs-pep/updated/cmd"
+import "github.com/JSTOR-Labs/pep/updated/cmd"
 
 func main() {
 	cmd.Execute()

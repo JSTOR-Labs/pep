@@ -21,7 +21,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/ithaka/labs-pep/updated/utils"
+	"github.com/JSTOR-Labs/pep/updated/utils"
 	"github.com/spf13/cobra"
 )
 
