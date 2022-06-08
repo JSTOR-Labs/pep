@@ -221,7 +221,7 @@ func BuildFlashDrive(name string, snapshotName string, pdfs []string) error {
 	log.Info().Msg("Garbage collecting elasticsearch")
 	runtime.GC()
 
-	err = files.CopyFile("/usr/share/pep/pepapi.exe", fmt.Sprintf("%s/api.exe", mountPoint))
+	err = files.CopyFile("/usr/share/pep/api.exe", fmt.Sprintf("%s/api.exe", mountPoint))
 	if err != nil {
 		return err
 	}
