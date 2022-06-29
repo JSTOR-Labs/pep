@@ -1,3 +1,5 @@
 *.db
 *.pid
 *.toml
+api
+api.exe
