@@ -1,247 +1,542 @@
 <template>
-  <div>
-    <h1>Admin Home</h1><br>
-      <!--<h2>Your device configurations</h2>-->
+  <div v-if="admin" id="request-list">
 
     <v-row>
-      <!--<v-col id="completed" class="device-tile" md="3"  @click="skipToConfigure">
-        <p class="device-name"> Spring 2020- Cornell, Auburn</p>
-        <p>18.4 GB</p>
-        <p> Includes 16 disciplines</p>
-        <p> Created - 1/20/2019</p>
+      <v-col cols="5">
+        <h1>View Student Requests</h1>
       </v-col>
 
-      <v-col id="in-progress" class="device-tile" md="3" >
-        <p class="device-name"> Fall 2020- Cornell, Auburn</p>
-        <p>31.1 GB</p>
-        <p>Includes 21 disciplines</p>
-        <p>45% export complete (Do not remove H:/)</p>
-        <v-progress-linear height="6px" value="45" background-color="#eeeeee" color="accent" class="build-in-progress"/>
-      </v-col>-->
+      <v-col cols="7" class="request-actions" id="hide-request">
+        <v-btn
+          outlined
+          height="40px"
+          color="primary"
+          @click="uploadFile()"
+        >Import list (.csv)
+        </v-btn>
 
-      <v-col md="6"><!-- class="create-device" -->
-        <p class="new-drive-heading">Select a drive to configure a new device. Its contents will be overwritten.</p>
+        <v-file-input accept=".csv" id="fileUpload" v-model="chosenFile" @change="importCSV"/>
 
-        <v-row>
-          <v-col md="12">
-            <v-select
-              outlined
-              dense
-              background-color="white"
-              label="Select Drive"
-              v-model="selectedDrive"
-              :items="driveNames"
-                @change="configureDrive"
-            ></v-select>
-          </v-col>
-        </v-row>
+        <json-c-s-v
+          :data="requestsForExport">
+          <v-btn
+            outlined
+            height="40px"
+            color="primary"
+          >Export list (.csv)
+          </v-btn>
+        </json-c-s-v>
+
+        <v-btn
+          outlined
+          height="40px"
+          color="primary"
+          @click="print()"
+        >Print this list
+        </v-btn>
+
+        <v-select
+          outlined
+          dense
+          id="selectRequests"
+          color="primary"
+          value="Pending"
+          :items="items"
+          @change="getRequests(true)"
+        />
       </v-col>
     </v-row>
-    <v-dialog
-      v-model="dialog"
-      width="500"
-    >
-      <v-card>
-        <v-card-title
-          class="headline grey lighten-2"
-          primary-title
-        >
-          Reformat Drive
-        </v-card-title>
 
-        <v-card-text v-if="!reformatting"><br>
+    <!--debug: sort={{currentSort}}, dir={{currentSortDir}}-->
+    <v-simple-table class="disciplines-table">
+      <thead>
+      <tr>
+        <th style="width:30%" @click="sort('title')" class="th-sort">
+          Title
+          <span class="arrows">
+            <span class="up"
+                  :class="{active: this.currentSort === 'title' && this.currentSortDir === 'asc'}">&#9650;</span>
+            <span class="down"
+                  :class="{active: this.currentSort === 'title' && this.currentSortDir === 'desc'}">&#9660;</span>
+          </span>
 
-          To continue, we need to reformat this drive and ALL data on it will be lost. Do you want to continue?
+        </th>
+        <th style="width:14%" @click="sort('studentName')" class="th-sort">
+          Name
+          <span class="arrows">
+            <span class="up" :class="{active: this.currentSort === 'studentName' && this.currentSortDir === 'asc'}">&#9650;</span>
+            <span class="down" :class="{active: this.currentSort === 'studentName' && this.currentSortDir === 'desc'}">&#9660;</span>
+          </span>
+        </th>
+        <th style="width:12%" @click="sort('dateRequested')" class="th-sort">
+          Requested
+          <span class="arrows">
+            <span class="up" :class="{active: this.currentSort === 'dateRequested' && this.currentSortDir === 'asc'}">&#9650;</span>
+            <span class="down"
+                  :class="{active: this.currentSort === 'dateRequested' && this.currentSortDir === 'desc'}">&#9660;</span>
+          </span>
+        </th>
+        <th style="width:10%" @click="sort('numPages')" class="th-sort">
+          Pages
+          <span class="arrows">
+            <span class="up"
+                  :class="{active: this.currentSort === 'numPages' && this.currentSortDir === 'asc'}">&#9650;</span>
+            <span class="down" :class="{active: this.currentSort === 'numPages' && this.currentSortDir === 'desc'}">&#9660;</span>
+          </span>
+        </th>
+        <th style="width:15%">
+          Notes
+        </th>
+        <th class="internet-yes hide-action-col" v-if="statusIsPending" style="width:19%"> Action</th>
+        <th v-else style="width:19%">Status</th>
 
-        </v-card-text>
-        <v-card-text v-if="reformatting"><br>
-          Reformatting . . .
-          <v-progress-linear indeterminate height="6px" value="100" background-color="#eeeeee" color="accent"/>
+      </tr>
+      </thead>
+      <tbody>
+      <tr 
+        v-for="(request, i) in sortedRequests"
+        :key="`request_${i}`">
 
+        <v-tooltip bottom content-class="tooltip">
+          <template v-slot:activator="{ on }" >
+              <td v-on="on">
+                <a v-if="request.pdf && !online">{{ request.title }} </a> <!-- pdf available, not online -->
+                <span v-if="!request.pdf && !online">{{ request.title }}</span> <!-- pdf not available, not online -->
+                <a v-if="online" :href="JSTORurl(request.id)" target="_blank">{{ request.title }}</a><!-- online -->
 
-        </v-card-text>
+              </td>
+          </template>
+          <span> {{ formatCitation(request.srcHtml) }} </span>
+        </v-tooltip>
 
-        <v-divider v-if="!reformatting"></v-divider>
+        <td> {{ request.studentName }} </td>
+        <!-- .toLocaleDateString() + ' ' + d.toTimeString().substring(0, d.toTimeString().indexOf("GMT")) -->
+        <td> {{ new Date(request.dateRequested).toLocaleDateString() }} |
+          {{ new Date(request.dateRequested).toTimeString().substring(0, new
+          Date(request.dateRequested).toTimeString().indexOf("GMT")).substring(0,5) }}
+        </td>
+        <td> {{ request.numPages }}</td>
+        <td> {{ request.notes }} </td>
+        <td class="internet-yes hide-action-col" v-if="statusIsPending">
+          <span class="request-buttons" >
+             <v-btn
+               v-if="online || request.pdf"
+               depressed
+               dark
+               x-small
+               color="accent"
+               @click="update(0, request)"
+             >Print
+            </v-btn>
+            <v-btn
+              v-if="!online && !request.pdf"
+              disabled
+              depressed
+              x-small
+              title="This article isn't available until you get online"
+            >Print
+            </v-btn>
 
-        <v-card-actions v-if="!reformatting">
-          <v-spacer></v-spacer>
-          <v-btn
-            color="primary"
-            text
-            @click="dialog = false"
-          >
-            No, don't do that
-          </v-btn>
-          <v-btn
-            color="primary"
-            text
-            @click="reformatDrive"
-          >
-            Yes, reformat my drive
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-       </v-dialog>
+            <v-btn
+              v-if="online || request.pdf"
+              depressed
+              dark
+              x-small
+              color="accent"
+              @click="update(1, request)"
+            >PDF
+            </v-btn>
+             <v-btn
+               v-if="!online && !request.pdf"
+               disabled
+               depressed
+               x-small
+               title="This article isn't available until you get online"
+             >PDF
+            </v-btn>
+
+            <v-btn
+              depressed
+              dark
+              x-small
+              color="deny"
+              @click="update(3, request)"
+            >Deny
+            </v-btn>
+          </span>
+        </td>
+
+        <td v-else>
+          {{ formatStatus(request.status) }}
+        </td>
+
+        <!--<td>{{ request }}</td>-->
+      </tr>
+      <tr v-if="!requests">
+        <br>
+        No requests at this time
+        <br><br><br>
+      </tr>
+
+      </tbody>
+    </v-simple-table>
 
   </div>
+
 </template>
 
 <script>
-  import { mapGetters, mapActions } from 'vuex'
 
+  import { mapGetters } from 'vuex'
+
+  import JsonCSV from '~/components/JsonCSV'
+  import PapaParse from 'papaparse'
 
   export default {
-    name: 'AdminHome',
-    data: () => ({
-      //toggle_disciplines: [],
-      drives: [],
-      driveNames: [],
-      selectedDrive: '',
-      driveToFormat: '',
-      noDriveMessage: 'No USB detected',
-      dialog: false,
-      reformatting: false,
-    }),
-    computed: {...mapGetters(['admin', 'drive', 'partitionName', 'longDriveName'])},
-    mounted() {
-      this.getDrives()
-      this.setDoneCreating(0);
-    },
-    methods: {...mapActions(['setAdmin', 'setDrive', 'setDoneCreating', 'setPartitionName', 'setPartitionSize', 'setLongDriveName']),
-      async getDrives() {
 
-        let resp = await this.$axios.$get("/admin/usb")
-        this.drives = resp.data
-        console.log('these drives are available ', this.drives)
-        this.driveNames = [];
-        for (let i = 0; i < this.drives.length; i++) {
-          this.driveNames.push(this.fullDriveName(this.drives[i]))
-        }
-        if (this.driveNames.length === 0) {
-          this.driveNames.push(this.noDriveMessage)
-        }
-      },
-      configureDrive() {
-        if (this.selectedDrive !== '' && this.selectedDrive !== null && this.selectedDrive !== this.noDriveMessage ) { //we have a real drive
-          for (let i = 0; i < this.drives.length; i++) {
-            if (this.fullDriveName(this.drives[i]) === this.selectedDrive) {
-
-              this.setDrive(this.drives[i])
-            }
-          }
-         if (typeof this.drive != 'undefined') {//and we found the object representing it
-           let thePartition
-           this.setLongDriveName(this.drive.name + ' ' + this.drive.model + ' ' + this.drive.size)
-           for (let j = 0; j < this.drive['partitions'].length; j++) { //if there are partitions
-             console.log(this.drive['partitions'][j])
-             if (this.drive['partitions'][j]['filesystem'] === 'exfat') { //and one has the correct formatting . . .
-                thePartition = this.drive['partitions'][j]
-                this.setPartitionName(thePartition.name);
-                console.log('the partition ', thePartition)
-               this.setPartitionSize(thePartition.sizeKB / (1024 * 1024));
-               this.$router.push({
-                 path: '/configure'
-               })
-                //break;
-
-             }
-           }
-
-           if (typeof thePartition == 'undefined') { //ask to reformat
-              this.dialog = true
-           }
-         } else {
-           alert ('Error connecting to the drive')
-         }
-        } else {
-          alert('Plug in a USB drive first')
-        }
-      },
-      async reformatDrive() {
-        this.reformatting = true;
-        console.log('drive to format ', this.drive.name)
-        let resp = await this.$axios.$post("/admin/usb", {'drive': this.drive.name})
-
-        console.log('the response, ', resp)
-        if (resp.code === 200 ) {
-          console.log('this.drive ', this.drive)
-          this.setPartitionName(this.drive['partitions'][0].name)
-          this.setPartitionSize(this.drive['partitions'][0].sizeKB / (1024 * 1024))
-          this.$router.push({
-            path: '/configure'
+    name: 'requests',
+    middleware: 'authenticated',
+    computed: {
+      ...mapGetters(['admin']),
+      sortedRequests: function () {
+        if (this.requests) {
+          return this.requests.sort((a, b) => {
+            let modifier = 1;
+            if (this.currentSortDir === 'asc') modifier = -1;
+            if (a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+            if (a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+            return 0;
           })
         } else {
-          alert('Sorry, reformatting didn\'t work')
+          return null
         }
-        this.dialog = false
-        this.reformatting = false
+      },
+      online: function() {
+
+        if (navigator) {
+          return navigator.onLine
+        } else {
+          return false;
+        }
+      
+      },
+
+    },
+    components: {
+
+      JsonCSV
+    },
+    data: () => ({
+      requests: [],
+      requestsForExport: [],
+      items: ['Pending', 'Completed'],
+      statusIsPending: true,
+      currentSort: 'dateRequested',
+      currentSortDir: 'asc',
+      chosenFile: null,
+      jstor: 'https://www.jstor.org/stable/',
+    }),
+    mounted() {
+      //this.component('downloadCsv', JsonCSV)
+      this.getRequests(false);
+    },
+
+    methods: {
+      async getRequests(switchView) {
+        if (switchView) {
+          this.statusIsPending = !this.statusIsPending
+        }
+        let params = {'pending': this.statusIsPending}
+        let resp = await this.$axios.$get("/admin/request", {params: params})
+        console.log('studentRequests in requests: ', resp)
+        this.requests = resp.data.requests
+        this.requestsForExport = _.cloneDeep(resp.data.requests)
+        //let dois = []
+        for (let r = 0; r < this.requestsForExport.length; r++) { //add URLS in case CSV is exported
+          delete this.requestsForExport[r]['pdf']
+          if (this.requestsForExport[r]['status'] === 0) {
+            this.requestsForExport[r]['status'] = 'printed'
+          }
+          if (this.requestsForExport[r]['status'] === 1) {
+            this.requestsForExport[r]['status'] = 'saved as PDF'
+          }
+          if (this.requestsForExport[r]['status'] === 2) {
+            this.requestsForExport[r]['status'] = 'pending review'
+          }
+          if (this.requestsForExport[r]['status'] === 3) {
+            this.requestsForExport[r]['status'] = 'denied'
+          }
+          this.requestsForExport[r]['url'] = '=HYPERLINK("' + this.jstor + this.requestsForExport[r].id + '")'
+
+          //the code below replaces the JSTOR URL with Click here
+          // this.requestsForExport[r]['url'] = '=HYPERLINK("' + this.jstor + this.requestsForExport[r].id +'"' + ',' + '"' + 'Click here' + '")'
+        }
 
       },
-      fullDriveName(drive){
-        return drive.name + ' ' + drive.model + ' ' + drive.size
-      },
+      async update(type, article) { // 0 = Print, 1 = PDF, 2 = Pending, 3 = denied
+        let vars = {
+          requestID: article.requestID,
+          articleID: article.id,
+          status: type
+        }
+        if (type === 0) {//print request
+          if (this.online) { //todo or pdf is available
+            open("https://www.jstor.org/stable/pdf/" + article.id + ".pdf")
+          } else {
+            let targetPDF = await this.$axios.get("/admin/pdf/" + article.id, { responseType: "blob" })
+            this.showPDF(targetPDF.data, article.id);
+          }
 
+        } else if (type === 1) { //pdf request
+          if (this.online) { //todo or pdf is available
+            open("https://www.jstor.org/stable/pdf/" + article.id + ".pdf")
+          } else {
+
+            let targetPDF = await this.$axios.get("/admin/pdf/" + article.id, { responseType: "blob" });
+            this.savePDF(targetPDF.data, article.id);
+          }
+        }
+
+
+        try {
+          let resp = await this.$axios.$patch("/admin/request", vars)
+        } catch (err) {
+          console.log('logging the error: ', err.response.data);
+        }
+        this.getRequests(false);
+
+      },
+      savePDF(blob, doi) {
+        const a = document.createElement("a");
+        a.style.display = "none";
+        //let decoded = window.atob(blob);
+        // Set the HREF to a Blob representation of the data to be downloaded
+        a.href = window.URL.createObjectURL(blob);
+
+        // Use download attribute to set set desired file name
+        a.setAttribute("download", doi + ".pdf");
+        document.body.appendChild(a);
+        // Trigger the download by simulating click
+        a.click();
+
+        // Cleanup
+        window.URL.revokeObjectURL(a.href);
+        document.body.removeChild(a);
+      },
+      showPDF(blob, doi) {
+        let fileURL = window.URL.createObjectURL(blob);
+
+        window.open(fileURL).print();
+      },
+      formatStatus(status) {
+        if (status === 0) {
+          return 'Printed'
+        } else if (status === 1) {
+          return 'Downloaded'
+        } else if (status === 3) {
+          return 'Denied'
+        } else {
+          return 'Unknown'
+        }
+      },
+      formatCitation(cite) {
+
+        if (cite.indexOf('</cite>') > -1) {
+          cite = cite.substring(6);
+          let first = cite.substring(0, cite.indexOf('</cite>'))
+          let second = cite.substring(cite.indexOf('</cite>') + 7)
+          return "from " + first + second
+        } else {
+          return cite
+        }
+
+      },
+      print() {
+        window.print();
+      },
+      sort(s) {
+        //if s == current sort, reverse
+        if (s === this.currentSort) {
+          this.currentSortDir = this.currentSortDir === 'asc' ? 'desc' : 'asc';
+        }
+        this.currentSort = s;
+      },
+      uploadFile() {
+        document.getElementById('fileUpload').click()
+      },
+      importCSV() {
+        let json = []
+        if (this.chosenFile) {
+          let reader = new FileReader();
+          reader.readAsText(this.chosenFile);
+          reader.onload = () => {
+            json = PapaParse.parse(reader.result, {header: true, dynamicTyping: true})
+            console.log('json.data ', json.data)
+
+            let imported = [];
+
+            for (let item in json.data) {
+              imported.push(json.data[item]);
+            }
+
+            for (let i = 0; i < this.requests.length; i++) {
+              let found = false;
+              for (let j = 0; j < imported.length; j++) {
+
+                if (imported[j].id == this.requests[i].id &&
+                  imported[j].studentName == this.requests[i].studentName &&
+                  imported[j].dateRequested === this.requests[i].dateRequested) {
+                  found = true;
+                  //console.log('found true for ', imported[j].id)
+                  //imported[j].nodes = imported[j].nodes.concat(this.requests[i].nodes);
+                  break;
+                }
+              }
+              if (!found) {
+                imported.push(this.requests[i]);
+              }
+            }
+             //console.log(JSON.stringify(imported))
+            this.requests = imported
+          }
+
+        }
+
+      },
+      JSTORurl: function(id) {
+        return 'https://www.jstor.org/stable/' + id
+      }
     }
   }
+
 </script>
 
-<style>
+<style scoped>
 
-  .device-tile p {
-    margin-bottom: -2px;
+  .disciplines-table {
+    margin-bottom: 16px;
   }
 
-  .device-tile {
-    position: relative;
-    background: linear-gradient(135deg, #006179, #0885A5);
-    height: 130px;
-    margin: 8px;
-    padding: 8px;
-    border-radius: 3px;
-    color: #fff;
-  }
-
-  .device-tile:hover {
-    cursor: pointer;
-    box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.5);
-  }
-
-  .device-name {
+  .disciplines-table th {
+    background-color: #F5F5F5;
+    color: black !important;
     font-size: 16px;
-    font-weight: bold;
+    height: 56px;
+    text-align: left;
+    padding: 6px;
   }
 
-  .build-in-progress {
-    position: absolute;
-    margin-left: -8px;
-    margin-top: 8px;
-    border-radius: 0 0 3px 3px;
+  td {
+    padding: 8px;
+    line-height: 1.6;
   }
 
-  .create-device {
-    background-color:#f5f5f5;
-    border: 1px solid #cfcfcf;
-    border-radius: 3px;
-    height: 130px;
-    margin: 8px;
+  td:not(:last-child), th:not(:last-child) {
+    border-right: 1px solid #dcdcdc;
   }
 
-  .select-button {
-    height: 40px !important;
+  .table-small-font {
+    font-size: 12px;
+    line-height: 1.2;
   }
 
-  .new-drive-heading {
-    margin-bottom: 0px;
-    font-weight: bold;
+  .v-tex-field__details {
+    display: none !important;
   }
 
-  .v-btn-toggle {
-    margin-right: 1em;
-    margin-bottom: 1em;
+  .internet-no .v-btn {
+    color: #727272;
+    background-color: #dddddd !important;
   }
 
-  .v-btn-toggle--dense > .v-btn.v-btn {
-    padding: 24px;
+  .request-actions {
+    display: inline-block;
   }
+
+  .request-actions .v-select {
+    display: inline-block;
+    width: 142px;
+  }
+
+  .arrows {
+    display: inline-block;
+    float: right;
+    visibility: hidden;
+    color: #cccccc;
+  }
+
+  .th-sort:hover {
+    cursor: pointer;
+  }
+
+  th:hover > .arrows {
+    cursor: pointer;
+    visibility: visible;
+  }
+
+  .up {
+    position: relative;
+    bottom: 6px;
+    left: 20px;
+  }
+
+  .down {
+    position: relative;
+    bottom: -10px;
+  }
+
+  .active {
+    visibility: visible;
+    color: #727272;
+  }
+
+  .request-buttons .v-btn {
+    font-size: 12px !important;
+  }
+
 </style>
 
+<style>
+  .request-actions .v-input__control .v-input__slot fieldset {
+    border-color: #006179;
+  }
+
+  .request-actions .v-select__slot label, .request-actions .v-select__slot .v-icon {
+    color: #006179;
+  }
+
+  #request-list .v-file-input {
+    display: none;
+  }
+
+  @media print {
+    #header {
+      display: none;
+    }
+
+    #footer {
+      display: none;
+    }
+
+    #hide-request {
+      display: none;
+    }
+
+    .arrows {
+      display: none !important;
+    }
+
+    .hide-action-col {
+      display: none !important;
+    }
+  }
+
+  .tooltip {
+    opacity: 1 !important;
+    background: #00152b !important;
+    max-width: 400px;
+    line-height: 1.5 !important;
+    cursor: pointer;
+  }
+
+</style>

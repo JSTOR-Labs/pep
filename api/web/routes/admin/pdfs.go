@@ -3,7 +3,6 @@ package admin
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 
@@ -31,8 +30,6 @@ func CheckPDFs(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-
-	log.Println("Loaded index: ", index)
 
 	for _, doi := range req.DOIs {
 		resp.DOIs[doi] = index.Search(doi)

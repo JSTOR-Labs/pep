@@ -3,10 +3,13 @@ package web
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/JSTOR-Labs/pep/api/discovery"
 	"github.com/JSTOR-Labs/pep/api/elasticsearch"
+	"github.com/JSTOR-Labs/pep/api/pdfs"
 	"github.com/JSTOR-Labs/pep/api/web/routes"
 	"github.com/JSTOR-Labs/pep/api/web/routes/admin"
 	"github.com/labstack/echo/v4"
@@ -18,7 +21,8 @@ import (
 
 func Listen(port int) {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	log.Info().Msgf("Starting PEP API")
+	log.Info().Msg("Starting PEP API")
+
 	app := echo.New()
 	app.HideBanner = true
 	app.Use(middleware.Logger())
@@ -49,14 +53,23 @@ func Listen(port int) {
 	adminGrp.PATCH("/request", admin.AdminUpdateRequest)
 	adminGrp.POST("/pdf/check", admin.CheckPDFs)
 	adminGrp.GET("/pdf/:doi/:pdf", admin.GetPDF)
-	adminGrp.GET("/usb", admin.GetUSBDevices)
-	adminGrp.POST("/usb", admin.FormatUSBDevice)
-	adminGrp.POST("/usb/:name", admin.BuildFlashDrive)
 	adminGrp.POST("/snapshot", admin.SnapshotStatus)
 	adminGrp.GET("/snapshot", admin.GetRestoreStatus)
 	adminGrp.GET("/indices", admin.GetIndexData)
-	app.Static("/", viper.GetString("web.root"))
 
+	ex, err := os.Executable()
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to find executable")
+	}
+	exPath := filepath.Dir(ex)
+	root := exPath + "/" + viper.GetString("web.root")
+	app.Static("/*", root)
+
+	if _, err := os.Stat(exPath + "/" + "pdfindex.dat"); err != nil {
+		log.Info().Msg("Generating PDF Index. This may take several hours.")
+		pdfs.GenerateIndex(exPath + "/" + "pdfs")
+	}
+	log.Info().Msgf("Web Runtime: %s", fmt.Sprint(viper.GetBool("runtime.flash_drive_mode")))
 	if !viper.GetBool("runtime.flash_drive_mode") {
 		svc, err := discovery.SetupDiscovery(port)
 		if err != nil {

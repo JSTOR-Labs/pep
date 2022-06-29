@@ -29,8 +29,6 @@
 
           <nuxt-link to="/">Admin Home</nuxt-link> <v-icon class="icon" color="primary" small>home</v-icon> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
           <!-- Admin configuration <a>Admin</a> <v-icon class="icon" color="primary"  small>settings</v-icon> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
-
-          <nuxt-link to="requests">View Requests</nuxt-link> <v-icon class="icon" color="primary" small>email</v-icon> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
           <a @click="logout">Logout</a> <v-icon class="icon" color="primary" small>arrow_forward</v-icon>
         </div>
       </div>
