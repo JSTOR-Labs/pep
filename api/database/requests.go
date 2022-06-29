@@ -14,6 +14,11 @@ import (
 )
 
 func init() {
+	log.Info().Msg("Running Requests Init")
+	bdb = setupBDB()
+}
+
+func setupBDB() *bolt.DB {
 	var err error
 	requestsLocation := "requests.db"
 	if !viper.GetBool("runtime.flash_drive_mode") {
@@ -23,6 +28,7 @@ func init() {
 	if err != nil {
 		log.Warn().Err(err).Msg("Unable to open requests database")
 	}
+	return bdb
 }
 
 func itob(v int) []byte {
@@ -32,6 +38,10 @@ func itob(v int) []byte {
 }
 
 func PutRequest(request *Request) error {
+	if bdb == nil {
+		bdb = setupBDB()
+	}
+
 	err := bdb.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(PendingBucket))
 		if err != nil {
@@ -55,6 +65,10 @@ func PutRequest(request *Request) error {
 }
 
 func GetAdminRequests(pending string) (adminRequests AdminRequests, err error) {
+	if bdb == nil {
+		bdb = setupBDB()
+	}
+
 	adminRequests.Requests = make([]*AdminRequest, 0)
 
 	noIndex := false
@@ -141,6 +155,10 @@ func GetAdminRequests(pending string) (adminRequests AdminRequests, err error) {
 }
 
 func RemovePendingRequest(r *Request) {
+	if bdb == nil {
+		bdb = setupBDB()
+	}
+
 	_ = bdb.Update(func(tx *bolt.Tx) error {
 		pb := tx.Bucket([]byte(PendingBucket))
 		return pb.Delete(itob(r.Id))
@@ -148,6 +166,10 @@ func RemovePendingRequest(r *Request) {
 }
 
 func (req *Request) Save() error {
+	if bdb == nil {
+		bdb = setupBDB()
+	}
+
 	bucketName := []byte(CompletedBucket)
 	for _, doc := range req.Documents {
 		if doc.Status == Pending {
@@ -170,6 +192,10 @@ func (req *Request) Save() error {
 }
 
 func (req *Request) Get(id int) error {
+	if bdb == nil {
+		bdb = setupBDB()
+	}
+
 	err := bdb.View(func(tx *bolt.Tx) error {
 		pending := tx.Bucket([]byte(PendingBucket))
 		completed := tx.Bucket([]byte(CompletedBucket))
