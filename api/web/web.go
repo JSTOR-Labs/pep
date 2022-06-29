@@ -69,7 +69,6 @@ func Listen(port int) {
 		log.Info().Msg("Generating PDF Index. This may take several hours.")
 		pdfs.GenerateIndex(exPath + "/" + "pdfs")
 	}
-	log.Info().Msgf("Web Runtime: %s", fmt.Sprint(viper.GetBool("runtime.flash_drive_mode")))
 	if !viper.GetBool("runtime.flash_drive_mode") {
 		svc, err := discovery.SetupDiscovery(port)
 		if err != nil {
