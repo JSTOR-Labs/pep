@@ -20,7 +20,6 @@ export default {
       'newSearchCounts'
     ]),
     data: () => ({
-
     }),
     mounted() {
 
@@ -59,6 +58,9 @@ export default {
       let resp = await this.$axios.$post("/search", args)
 
           console.log('search response in searchConstructor: ', resp)
+          if (!(resp || {}).data) {
+            return
+          }
           this.setSearchResp(resp)
           //console.log('new search? ', this.newSearch)
           //.log('new search counts? ', this.newSearchCounts)

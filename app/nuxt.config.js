@@ -38,11 +38,12 @@ export default {
   ** https://github.com/nuxt-community/vuetify-module
   */
   vuetify: {
+    customVariables: ['~/assets/variables.scss'],
     theme: {
       themes: {
         light: {
-          primary: '#006179',
-          secondary: '#c55f06',
+          primary: '#990000',
+          secondary: '#000000',
           accent: '#29AB53',
           deny: '#BE0101',
           error: '#FF0000',
