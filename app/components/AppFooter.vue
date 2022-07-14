@@ -55,7 +55,11 @@ export default {
 
       //console.log('resetPagination? ', resetPagination)
       let version = await this.$axios.$get("/version")
-
+      if (!(version || {}).data) {
+        this.versionNo="Unknown"
+        this.lastUpdate="Unknown"
+        return
+      }
       console.log('version in appFooter: ', version)
       this.versionNo = version.data.version;
       this.lastUpdate = (new Date(version.data.lastUpdate)).toLocaleDateString()

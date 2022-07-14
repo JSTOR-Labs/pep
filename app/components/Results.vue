@@ -1,9 +1,23 @@
 <template>
   <div id="results">
-
-    <v-row class="results-bar">
+    <v-progress-circular
+      v-if="searching"
+      indeterminate
+      color="primary"
+    />
+    <v-row
+      v-else
+      class="results-bar">
       <v-col md="12">
-        <h2 style="margin-top: -8px">Showing {{(pageNo - 1 ) * limit + 1}} - {{(pageNo ) * limit}} of  {{new Intl.NumberFormat('en-US').format(searchResp.total) || 0}} search results </h2>
+        <h2
+          style="margin-top: -8px">
+          <span v-if="searchResp.total">
+            Showing {{(pageNo - 1 ) * limit + 1}} - {{(pageNo ) * limit}} of  {{new Intl.NumberFormat('en-US').format(searchResp.total) || 0}} search results
+          </span>
+          <span v-else>
+            No Results
+          </span>
+        </h2>
         <!--<p>{{ resultDescription }}</p>-->
       </v-col>
 
@@ -95,20 +109,26 @@
     data: () => ({
       pageNo: 1,
       success: 'Request submitted',
+      searching: false,
     }),
     mixins: [ manageCart, searchConstructor ],
     mounted() {
-      this.doSearch(true)
+      this.startSearch(true)
     },
 
     methods: {...mapActions(['setSearchResp', 'setAdmin', 'setReqs', 'setLimit', 'setOffset', 'setSearchTerms']),
+      async startSearch (val) {
+        this.searching = true
+        await this.doSearch(val)
+        this.searching = false
+      },
       onPageChange() {
         this.setOffset((this.pageNo - 1) * this.limit)
-        this.doSearch(false)
+        this.startSearch(false)
       },
       searchFor(topic) {
         this.setSearchTerms(topic)
-        this.doSearch(true);
+        this.startSearch(true);
       },
 
     }
