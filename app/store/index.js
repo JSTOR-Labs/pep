@@ -22,6 +22,7 @@ export const state = () => ({
   pageNo: 1,
   searchReq: {},
   searchResp: {},
+  searching: false,
 
   admin: false,
   reqs: JSON.parse(localStorage.getItem('requests')) || [],
@@ -54,6 +55,7 @@ export const mutations = {
   setPageNo(state, pageNo) { state.pageNo = pageNo },
   setSearchReq(state, searchReq) { state.searchReq = searchReq },
   setSearchResp(state, searchResp) { state.searchResp = searchResp },
+  setSearching(state, searching) { state.searching = searching },
 
   setAdmin(state, loggedin) { state.admin = loggedin },
   setReqs(state, reqs) {
@@ -111,6 +113,7 @@ export const actions = {
   setPageNo: ({ commit } , pageNo) => commit('setPageNo', pageNo),
   setSearchReq: ({ commit }, searchReq) => commit('setSearchReq', searchReq),
   setSearchResp: ({ commit }, searchResp) => commit('setSearchResp', searchResp),
+  setSearching: ({ commit }, searching) => commit('setSearching', searching),
 
   setAdmin: ({ commit }, loggedin) => commit('setAdmin', loggedin),
   setReqs: ({ commit }, reqs) => commit('setReqs', reqs),
@@ -143,6 +146,7 @@ export const getters = {
   pageNo: state => state.pageNo,
   searchReq: state => state.searchReq,
   searchResp: state => state.searchResp,
+  searching: state => state.searching,
 
   admin: state => state.admin,
   reqs: state => state.reqs,

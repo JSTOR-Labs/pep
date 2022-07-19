@@ -43,24 +43,25 @@ export default {
 
   },
   methods: {
-    ...mapActions(['clearSearchResults', 'setSearchResp', 'setDisciplineList', 'setContentTypeList', 'setNewSearch', 'setPageNo', 'setNewSearchCounts']),
+    ...mapActions(['setSearching', 'clearSearchResults', 'setSearchResp', 'setDisciplineList', 'setContentTypeList', 'setNewSearch', 'setPageNo', 'setNewSearchCounts']),
 
     async doSearch(resetPagination) {
+      this.setSearching(true)
       //console.log('resetPagination? ', resetPagination)
       let args =
           {offset: resetPagination ? 0 : this.offset,
         limit: 20,
-        fields: ['title', 'authors', 'srcHtml', 'contentType', 'pageCount', 'semanticTerms', 'ocr'],
+        fields: ['title', 'authors', 'srcHtml', 'contentType', 'pageCount', 'semanticTerms', 'ocr', 'firstPage', 'lastPage', 'publisher', 'book_description', 'year', 'abstract', 'series'],
         facets: ['contentType', 'disciplines'],
         filters: this.theFilters,/*  filters: ['disciplineCode:(D1 OR d2)'] this.theFilters,*/
         query: this.searchTerms}
         console.log('search args: ', args)
+        this.setSearchResp({
+          ...this.searchResp,
+          docs: []
+        })
       let resp = await this.$axios.$post("/search", args)
-
           console.log('search response in searchConstructor: ', resp)
-          if (!(resp || {}).data) {
-            return
-          }
           this.setSearchResp(resp)
           //console.log('new search? ', this.newSearch)
           //.log('new search counts? ', this.newSearchCounts)
@@ -77,6 +78,7 @@ export default {
           if (resetPagination) {
             this.setPageNo(1)
           }
+          this.setSearching(false)
     },
     updateDisciplineCounts(resp) {
       let existing = _.cloneDeep(this.disciplineList)
