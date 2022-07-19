@@ -39,7 +39,18 @@
             <span v-if="doc.pageCount">({{ doc.pageCount }} pages) </span><br>
             <span class="article-title"> {{doc.title}} </span> <br>
             <span style="line-height: 30px" v-if="doc.authors">Author: {{doc.authors[0]}}</span><!-- todo format author string? -->
-            <p v-html="doc.srcHtml"/>
+            <p v-html="doc.srcHtml" />
+            <p v-if="doc.series || doc.publisher || doc.year">
+              <strong>
+                <span v-if="doc.series">{{ doc.series }}<span v-if="doc.publisher">,</span></span>
+                <span v-if="doc.publisher">{{ doc.publisher }}</span>
+              </strong>
+              <span v-if="doc.year">{{ `(${doc.year})` }}</span>
+            </p>
+            <p v-if="doc.abstract">
+              {{ doc.abstract }}
+            </p>
+            <p v-html="doc.book_description" />
             <p v-if="doc.semanticTerms">
               <b>Topics: </b>
               <span v-for="(topic, key) in doc.semanticTerms" :key = 'key'>
@@ -97,7 +108,7 @@
 
   export default {
     name: "Results",
-    computed: {...mapGetters(['searchResp', 'reqs', 'limit', 'searchReq']),
+    computed: {...mapGetters(['searching', 'searchResp', 'reqs', 'limit', 'searchReq']),
       numPages() {
           return Math.ceil(this.searchResp.total / this.limit)
       },
@@ -109,26 +120,21 @@
     data: () => ({
       pageNo: 1,
       success: 'Request submitted',
-      searching: false,
     }),
     mixins: [ manageCart, searchConstructor ],
     mounted() {
-      this.startSearch(true)
+      this.doSearch(true)
     },
 
     methods: {...mapActions(['setSearchResp', 'setAdmin', 'setReqs', 'setLimit', 'setOffset', 'setSearchTerms']),
-      async startSearch (val) {
-        this.searching = true
-        await this.doSearch(val)
-        this.searching = false
-      },
       onPageChange() {
         this.setOffset((this.pageNo - 1) * this.limit)
-        this.startSearch(false)
+        this.doSearch(false)
+
       },
       searchFor(topic) {
         this.setSearchTerms(topic)
-        this.startSearch(true);
+        this.doSearch(true)
       },
 
     }
