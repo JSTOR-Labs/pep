@@ -21,7 +21,7 @@ func setupBDB() *bolt.DB {
 	var err error
 	requestsLocation := "requests.db"
 	if !viper.GetBool("runtime.flash_drive_mode") {
-		requestsLocation = "mnt/data/" + requestsLocation
+		requestsLocation = "JSTOR/mnt/data/" + requestsLocation
 	}
 	requestsLocation = "./" + requestsLocation
 	bdb, err = bolt.Open(requestsLocation, 0600, &bolt.Options{Timeout: 1 * time.Second})
