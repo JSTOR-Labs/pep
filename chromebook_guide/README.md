@@ -9,7 +9,7 @@
 3. When prompted to set up the Linux development environment, select Next.
     ![Screenshot with an arrow pointing at the "Next" button.](images/step3.png)
 
-4. Choose a username and set a disk size of 35GB, then select Install. Make a note of the username you selected. 
+4. Choose a username and use the recommended disk size of 10GB, then select Install. Make a note of the username you selected. 
     ![Screenshot showing the options for a Linux development environment. Arrows point at the username field, the disk size slider, and then "Install" button.](images/step4a.png)
     The installation may take several minutes.
     ![Screenshot showing the progress monitor with a partially filled bar waiting for the Linux environment to finish installing.](images/step4b.png)
@@ -20,7 +20,7 @@
     Chromebooks can be a little finicky about transferring files. You may note that the time remaining for the transfer swings wildly from several minutes to hundreds of hours. Don’t worry. It’s typically less than an hour. You may want to make sure the computer is plugged in and active during this process (see the guide below for instructions on keeping the chromebook from sleeping during the transfer). It can take a while, and you don’t want to have any errors. If you do, delete the files and start again.
     ````
     ![Screenshot with an arrow pointing at the highlighted files that need to be moved. An arrow points to the Linux files folder where they need to be dragged. A third arrow points to the progress monitor indicating over an hour until the transfer is complete.](images/step5.png)
-6. While the files are transfering, let's install Elasticsearch! Double click the file that begins with "elasticsearch-" to begin the installation. You'll be prompted to move forward. Click "Install" then click "OK."
+6. While the files are transfefring, let's install Elasticsearch! Double click the file that begins with "elasticsearch-" to begin the installation. You'll be prompted to move forward. Click "Install" then click "OK."
     ![Screenshot with the Elasticsearch installer highlighted.](images/step6a.png)
     ![Screenshot of the first installation step with the "Install" button.](images/step6b.png)
     ![Screenshot of the second installation step with the "OK" button.](images/step6c.png)
