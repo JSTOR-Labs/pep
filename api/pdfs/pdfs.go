@@ -92,7 +92,7 @@ func GenerateIndex(root string) error {
 		return err
 	}
 
-	si, err := os.Create("./JSTOR/pdfindex.dat")
+	si, err := os.Create("./content/pdfindex.dat")
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create pdfindex.dat")
 		return err
@@ -104,7 +104,7 @@ func GenerateIndex(root string) error {
 		return err
 	}
 
-	sizesIndex, err := os.Create("./JSTOR/pdfsizes.json")
+	sizesIndex, err := os.Create("./content/pdfsizes.json")
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create pdfsizes.json")
 		return err
@@ -121,7 +121,7 @@ func GenerateIndex(root string) error {
 }
 
 func GetPDFSizes() (map[string]int64, error) {
-	f, err := os.Open("./JSTOR/pdfsizes.json")
+	f, err := os.Open("./content/pdfsizes.json")
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func GetPDFSizes() (map[string]int64, error) {
 }
 
 func LoadIndex() (*searchtree.BinarySearchTree, error) {
-	f, err := os.Open("./JSTOR/pdfindex.dat")
+	f, err := os.Open("./content/pdfindex.dat")
 	if err != nil {
 		return nil, err
 	}

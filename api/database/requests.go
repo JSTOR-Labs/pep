@@ -10,7 +10,6 @@ import (
 	"github.com/JSTOR-Labs/pep/api/pdfs"
 	"github.com/boltdb/bolt"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 )
 
 func init() {
@@ -19,11 +18,7 @@ func init() {
 
 func setupBDB() *bolt.DB {
 	var err error
-	requestsLocation := "requests.db"
-	if !viper.GetBool("runtime.flash_drive_mode") {
-		requestsLocation = "JSTOR/mnt/data/" + requestsLocation
-	}
-	requestsLocation = "./" + requestsLocation
+	requestsLocation := "./content/requests.db"
 	bdb, err = bolt.Open(requestsLocation, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		log.Warn().Err(err).Msg("Unable to open requests database")

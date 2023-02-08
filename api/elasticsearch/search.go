@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/JSTOR-Labs/pep/api/globals"
+	"github.com/JSTOR-Labs/pep/api/pdfs"
 	"github.com/olivere/elastic/v7"
 )
 
@@ -74,6 +75,11 @@ func ParseResults(esRes *elastic.SearchResult) *SearchResult {
 		doc["_index"] = hit.Index
 		res.Documents = append(res.Documents, doc)
 	}
+	noIndex := false
+	index, err := pdfs.LoadIndex()
+	if err != nil {
+		noIndex = true
+	}
 
 	res.Facets = make(map[string][]map[string]interface{})
 	res.Stats = make(map[string]interface{})
@@ -96,6 +102,13 @@ func ParseResults(esRes *elastic.SearchResult) *SearchResult {
 				res.Facets[agg] = append(res.Facets[agg], tempAgg)
 			}
 		}
+	}
+	for _, doc := range res.Documents {
+		PDFAvailable := false
+		if !noIndex {
+			PDFAvailable = index.Search(doc["doi"].(string))
+		}
+		doc["pdfAvailable"] = PDFAvailable
 	}
 
 	return res
