@@ -1,6 +1,10 @@
 
 export default {
-  mode: 'spa',
+  ssr: false,
+  target: 'static',
+  generate: {
+    fallback: true,
+  },
   /*
   ** Headers of the page
   */
@@ -79,6 +83,9 @@ export default {
   ** Build configuration
   */
   build: {
+    transpile: [
+      'pdfjs-dist',
+    ],
     /*
     ** You can extend webpack config here
     */

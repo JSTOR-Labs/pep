@@ -281,17 +281,12 @@
         }
         if (type === 0) {//print request
           if (this.online) { //todo or pdf is available
-            open("https://www.jstor.org/stable/pdf/" + article.id + ".pdf")
-          } else {
             let targetPDF = await this.$axios.get("/admin/pdf/" + article.id, { responseType: "blob" })
             this.showPDF(targetPDF.data, article.id);
           }
 
         } else if (type === 1) { //pdf request
-          if (this.online) { //todo or pdf is available
-            open("https://www.jstor.org/stable/pdf/" + article.id + ".pdf")
-          } else {
-
+          if (this.online) {
             let targetPDF = await this.$axios.get("/admin/pdf/" + article.id, { responseType: "blob" });
             this.savePDF(targetPDF.data, article.id);
           }

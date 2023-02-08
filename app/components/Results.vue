@@ -64,7 +64,9 @@
           </div>
         </v-col>
 
-        <v-col md="3" align="right" class="results-button">
+        <v-col
+          v-if="!doc.pdfAvailable"
+          md="3" align="right" class="results-button">
           <v-btn
             depressed
             dark
@@ -85,6 +87,19 @@
             title="Click to request"
             @click="addRequest(doc)">
             Request this
+          </v-btn>
+        </v-col>
+        <v-col
+          v-else
+          md="3" align="right" class="results-button">
+          <v-btn
+            outlined
+            dark
+            color="primary"
+            title="Click to view PDF"
+             :to="{ path: `/viewer/${doc['_id']}` }"
+            >
+            View PDF
           </v-btn>
         </v-col>
       </v-row>
@@ -108,7 +123,7 @@
 
   export default {
     name: "Results",
-    computed: {...mapGetters(['searching', 'searchResp', 'reqs', 'limit', 'searchReq']),
+    computed: {...mapGetters(['searching', 'searchResp', 'reqs', 'limit', 'searchReq', 'offset']),
       numPages() {
           return Math.ceil(this.searchResp.total / this.limit)
       },
@@ -123,19 +138,53 @@
     }),
     mixins: [ manageCart, searchConstructor ],
     mounted() {
-      this.doSearch(true)
+      this.setSearchTerms(this.$route.query.term)
+      this.pageNo = this.$route.query.page || 1
+      this.setOffset((this.pageNo - 1) * this.limit)
+      this.doSearch(false)
     },
-
-    methods: {...mapActions(['setSearchResp', 'setAdmin', 'setReqs', 'setLimit', 'setOffset', 'setSearchTerms']),
-      onPageChange() {
+    watch: {
+      '$route.query.page': function() {
+        this.pageNo = this.$route.query.page || 1
         this.setOffset((this.pageNo - 1) * this.limit)
         this.doSearch(false)
-
+      },
+      '$route.query.term': function() {
+        if (this.searchTerms!==this.$route.query.term) {
+          console.log("Setting term", this.$route.query.term)
+          this.setSearchTerms(this.$route.query.term)
+          this.doSearch(true)
+        }
+      },
+    },
+    methods: {
+      ...mapActions(['setSearchResp', 'setAdmin', 'setReqs', 'setLimit', 'setOffset', 'setSearchTerms']),
+      onPageChange() {
+        // this.setOffset((this.pageNo - 1) * this.limit)
+        this.$router.push({
+          path: '/search',
+          query: {
+            term: this.searchTerms,
+            page: this.pageNo,
+          }
+        })
       },
       searchFor(topic) {
-        this.setSearchTerms(topic)
-        this.doSearch(true)
+        // this.setSearchTerms(topic)
+        // this.doSearch(true)
+        this.$router.push({
+          path: '/search',
+          query: {
+            term: topic,
+            page: 1,
+          }
+        })
       },
+      viewPDF(doi) {
+        this.$router.push({
+            path: '/viewer/' + doi,
+        })
+      }
 
     }
   }
