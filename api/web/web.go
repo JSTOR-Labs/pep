@@ -33,17 +33,20 @@ func PathHasMethod(rts []Route, method string) bool {
 	}
 	return false
 }
-func GetExpath() string {
+func GetExpath() (string, error) {
 	ex, err := os.Executable()
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to find executable")
+		return "", err
 	}
 
-	return filepath.Dir(ex)
+	return filepath.Dir(ex), err
 }
-func GetRoot() string {
-	exPath := GetExpath()
-	return exPath + "/" + viper.GetString("web.root")
+func GetRoot() (string, error) {
+	exPath, err := GetExpath()
+	if err != nil {
+		return "", err
+	}
+	return exPath + "/" + viper.GetString("web.root"), err
 }
 func customHTTPErrorHandler(err error, c echo.Context) {
 	code := http.StatusInternalServerError
@@ -51,7 +54,10 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 		code = he.Code
 	}
 	log.Error().Err(err).Msg("HTML Error")
-	root := GetRoot()
+	root, err := GetRoot()
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to find root path")
+	}
 	errorPage := fmt.Sprintf("%s/%d.html", root, code)
 	if err := c.File(errorPage); err != nil {
 		log.Error().Err(err).Msg("Failed to find to error page")
@@ -187,7 +193,16 @@ func Listen(port int) {
 		}
 	}
 
-	exPath := GetExpath()
+	exPath, err := GetExpath()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to find executable path")
+		return
+	}
+	root, err := GetRoot()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to find root")
+		return
+	}
 	app.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Skipper: func(c echo.Context) bool {
 			val, ok := rtPaths[c.Request().URL.Path]
@@ -196,7 +211,7 @@ func Listen(port int) {
 			}
 			return false
 		},
-		Root:  GetRoot(),
+		Root:  root,
 		HTML5: true,
 	}))
 	app.HTTPErrorHandler = customHTTPErrorHandler
