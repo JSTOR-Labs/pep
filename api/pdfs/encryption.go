@@ -7,10 +7,9 @@ import (
 	"crypto/sha512"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/gob"
 	"encoding/pem"
 	"errors"
-	"fmt"
+	"io/ioutil"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -27,10 +26,6 @@ type X509 struct {
 	Certificate *bytes.Buffer
 	PrivateKey  *bytes.Buffer
 	PublicKey   *rsa.PublicKey
-}
-type PDFPasswords struct {
-	Owner string
-	User  string
 }
 
 //go:embed keys/cert.pem
@@ -185,33 +180,14 @@ func GetPassword() (string, error) {
 	return pw, err
 }
 
-func GeneratePDFPasswords() (PDFPasswords, error) {
-	user, err := GetPassword()
-	if err != nil {
-		return PDFPasswords{}, err
-	}
-	owner, err := GetPassword()
-	if err != nil {
-		return PDFPasswords{}, err
-	}
-	return PDFPasswords{
-		User:  user,
-		Owner: owner,
-	}, err
-}
-
-func EncodeFile(file *os.File, content *bytes.Buffer) {
-	enc := gob.NewEncoder(file)
-	enc.Encode(content)
-	file.Close()
-}
 func SaveFile(path string, content *bytes.Buffer) error {
-	file, err := os.Create(path)
+	readBuf, err := ioutil.ReadAll(content)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-	EncodeFile(file, content)
+
+	err = ioutil.WriteFile(path, readBuf, os.ModePerm)
+
 	return err
 }
 
@@ -241,13 +217,13 @@ func SaveEncryptionFiles() error {
 	}
 	SaveCert(keypath, c)
 
-	pws, err := GeneratePDFPasswords()
+	userPW, err := GetPassword()
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to generate PDF passwords")
+		log.Error().Err(err).Msg("Failed to generate PDF password")
 		return err
 	}
 
-	ciphertext, err := EncryptWithPublicKey([]byte(pws.User), c.PublicKey)
+	ciphertext, err := EncryptWithPublicKey([]byte(userPW), c.PublicKey)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to generate encrypt user password")
 		return err
@@ -259,27 +235,40 @@ func SaveEncryptionFiles() error {
 	}
 	return nil
 }
-func EncryptPDFDirectory(p string, pws PDFPasswords) error {
+func EncryptPDFDirectory(p string) error {
 	err := filepath.Walk(p,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
 			if !info.IsDir() && info.Name() != ".DS_Store" {
-				return EncryptPDF(path, pws)
+				return EncryptPDF(path)
 			}
 			return err
 		})
 	return err
 }
 
-func EncryptPDF(path string, pws PDFPasswords) error {
+func EncryptPDF(path string) error {
+	// The owner password is generated and used here, then ignored. We will only ever decrypt with the user password.
+	ownerPW, err := GetPassword()
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to generate PDF owner password")
+		return err
+	}
+
+	userPW, err := GetPDFPassword()
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to generate PDF owner password")
+		return err
+	}
+
 	config := pdfcpu.LoadConfiguration()
-	config.UserPW = pws.User
-	config.OwnerPW = pws.Owner
+	config.UserPW = userPW
+	config.OwnerPW = ownerPW
 	config.EncryptUsingAES = true
 	config.EncryptKeyLength = 256
 
-	err := pdfcpu.EncryptFile(path, path, config)
+	err = pdfcpu.EncryptFile(path, path, config)
 	return err
 }
