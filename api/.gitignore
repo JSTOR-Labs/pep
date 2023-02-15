@@ -3,4 +3,5 @@
 *.toml
 api
 api.exe
-pdfs/encryption
+pdfs/keys/*
+!pdfs/keys/README.md

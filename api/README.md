@@ -8,21 +8,28 @@ This API is designed to run on both a NUC running a custom Arch Linux image, and
 
 ## Building
 
+
 ### Binary
 
-Open a terminal and cd into the project root, to set configuration options follow the [Configuration](##Configuration) section after building.
+Open a terminal and cd into the api root, to set configuration options follow the [Configuration](##Configuration) section after building. The Makefile has options for various standard builds. Building the api binary with the Makefile will also generate a fresh Certificate, private key, and encrypted user password in the `pdfs/keys` directory. Note that this will overwrite any existing content.
+
+The only requirement before building is that you update the value for `PASSWORD` in the Makefile to include the desired admin password.
 
 #### Native
 
 `go build -ldflags="-w -s" -o api`
 
-#### Linux
+#### Chromebook
 
-`GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o api`
+`make chromebook`
 
 #### Windows
 
-`GOOS=windows GOARCH=amd64 go build -ldflags="-w -s" -o api.exe`
+`make windows`
+
+#### Mac
+
+`make mac`
 
 ### Docker
 

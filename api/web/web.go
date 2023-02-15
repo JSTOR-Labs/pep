@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/JSTOR-Labs/pep/api/elasticsearch"
 	"github.com/JSTOR-Labs/pep/api/pdfs"
+	"github.com/JSTOR-Labs/pep/api/utils"
 	"github.com/JSTOR-Labs/pep/api/web/routes"
 	"github.com/JSTOR-Labs/pep/api/web/routes/admin"
 	"github.com/labstack/echo/v4"
@@ -33,28 +33,14 @@ func PathHasMethod(rts []Route, method string) bool {
 	}
 	return false
 }
-func GetExpath() (string, error) {
-	ex, err := os.Executable()
-	if err != nil {
-		return "", err
-	}
 
-	return filepath.Dir(ex), err
-}
-func GetRoot() (string, error) {
-	exPath, err := GetExpath()
-	if err != nil {
-		return "", err
-	}
-	return exPath + "/" + viper.GetString("web.root"), err
-}
 func customHTTPErrorHandler(err error, c echo.Context) {
 	code := http.StatusInternalServerError
 	if he, ok := err.(*echo.HTTPError); ok {
 		code = he.Code
 	}
 	log.Error().Err(err).Msg("HTML Error")
-	root, err := GetRoot()
+	root, err := utils.GetRoot()
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to find root path")
 	}
@@ -193,12 +179,12 @@ func Listen(port int) {
 		}
 	}
 
-	exPath, err := GetExpath()
+	wd, err := os.Getwd()
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to find executable path")
 		return
 	}
-	root, err := GetRoot()
+	root, err := utils.GetRoot()
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to find root")
 		return
@@ -214,10 +200,11 @@ func Listen(port int) {
 		Root:  root,
 		HTML5: true,
 	}))
+
 	app.HTTPErrorHandler = customHTTPErrorHandler
-	if _, err := os.Stat(exPath + "/" + "pdfindex.dat"); err != nil {
+	if _, err := os.Stat(wd + "/" + "pdfindex.dat"); err != nil {
 		log.Info().Msg("Generating PDF Index. This may take several hours.")
-		pdfs.GenerateIndex(exPath + "/" + "pdfs")
+		pdfs.GenerateIndex(wd + "/" + "pdfs")
 	}
 
 	log.Fatal().Err(app.Start(fmt.Sprintf(":%d", port))).Int("port", port).Msg("Failed to listen")
