@@ -39,6 +39,11 @@ docker build -e "admin_password=password123" \
     -e "elastic_addr=http://localhost:9200" -t pep-api .
 ```
 
+## PDF Encryption
+
+When the api binary is in the same directory as a directory `pdfs` with unencrypted PDF files, you can run `./api encrypt` to encrypt all pdfs in the directory using the encrypted symmetric key.
+
+
 ## Configuration
 
 Skip this section if you built using docker.  The configuration option are set at build time during a Docker build.
