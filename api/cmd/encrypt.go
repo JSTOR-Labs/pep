@@ -1,6 +1,10 @@
 package cmd
 
 import (
+	"fmt"
+
+	"github.com/JSTOR-Labs/pep/api/pdfs"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -14,11 +18,12 @@ var encryptCmd = &cobra.Command{
 	 key and the Cert used for the encryption.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// path := "/Volumes/MacJSTOR/Mac/pdfs"
-		// err = pdfs.EncryptPDFDirectory(path, pws)
-		// if err != nil {
-		// 	log.Fatal().Err(err).Msg("Failed to encrypt PDFs")
-		// }
+		path := "./pdfs"
+		err := pdfs.EncryptPDFDirectory(path)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to encrypt PDFs")
+		}
+		fmt.Println("Document encryption complete")
 	},
 }
 

@@ -9,6 +9,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -34,18 +35,21 @@ var cert []byte
 //go:embed keys/ciphertext
 var ciphertext []byte
 
+//go:embed keys/key.pem
+var privateKey []byte
+
 func EncryptWithPublicKey(msg []byte, pub *rsa.PublicKey) ([]byte, error) {
 	hash := sha512.New()
-	ciphertext, err := rsa.EncryptOAEP(hash, rand.Reader, pub, msg, nil)
+	ct, err := rsa.EncryptOAEP(hash, rand.Reader, pub, msg, nil)
 	if err != nil {
 		return nil, err
 	}
-	return ciphertext, err
+	return ct, err
 }
 
-func DecryptWithPrivateKey(ciphertext []byte, priv *rsa.PrivateKey) ([]byte, error) {
+func DecryptWithPrivateKey(ct []byte, priv *rsa.PrivateKey) ([]byte, error) {
 	hash := sha512.New()
-	plaintext, err := rsa.DecryptOAEP(hash, rand.Reader, priv, ciphertext, nil)
+	plaintext, err := rsa.DecryptOAEP(hash, rand.Reader, priv, ct, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -65,19 +69,13 @@ func GetReadSeeker(file *os.File) *bytes.Reader {
 }
 
 func GetPrivateKey() (*rsa.PrivateKey, error) {
-	key, err := os.ReadFile("./content/key.pem")
+	block, _ := pem.Decode(privateKey)
+
+	pk, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
 		return nil, err
 	}
-
-	block, _ := pem.Decode(key)
-
-	pk, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return pk.(*rsa.PrivateKey), err
+	return pk, err
 }
 
 func GetCert() (*x509.Certificate, error) {
@@ -119,6 +117,9 @@ func GetPDFPassword() (string, error) {
 	}
 
 	plaintext, err := DecryptWithPrivateKey(ciphertext, pk)
+	if err != nil {
+		return "", err
+	}
 	return string(plaintext), err
 }
 
@@ -160,15 +161,10 @@ func GenerateCert() (X509, error) {
 		Bytes: x509.MarshalPKCS1PrivateKey(caPrivKey),
 	})
 
-	c, err := x509.ParseCertificate(caBytes)
-	if err != nil {
-		return X509{}, err
-	}
-
 	return X509{
 		Certificate: caPEM,
 		PrivateKey:  caPrivKeyPEM,
-		PublicKey:   c.PublicKey.(*rsa.PublicKey),
+		PublicKey:   &caPrivKey.PublicKey,
 	}, nil
 }
 
@@ -191,12 +187,12 @@ func SaveFile(path string, content *bytes.Buffer) error {
 	return err
 }
 
-func SaveCert(keypath string, cert X509) error {
-	err := SaveFile(keypath+"cert.pem", cert.Certificate)
+func SaveCert(keypath string, c X509) error {
+	err := SaveFile(keypath+"cert.pem", c.Certificate)
 	if err != nil {
 		return err
 	}
-	err = SaveFile(keypath+"key.pem", cert.PrivateKey)
+	err = SaveFile(keypath+"key.pem", c.PrivateKey)
 	if err != nil {
 		return err
 	}
@@ -223,12 +219,13 @@ func SaveEncryptionFiles() error {
 		return err
 	}
 
-	ciphertext, err := EncryptWithPublicKey([]byte(userPW), c.PublicKey)
+	fmt.Println(userPW)
+	ct, err := EncryptWithPublicKey([]byte(userPW), c.PublicKey)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to generate encrypt user password")
 		return err
 	}
-	err = SaveFile(keypath+"ciphertext", bytes.NewBuffer(ciphertext))
+	err = ioutil.WriteFile(keypath+"ciphertext", ct, 0644)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to save ciphertext")
 		return err
@@ -259,7 +256,7 @@ func EncryptPDF(path string) error {
 
 	userPW, err := GetPDFPassword()
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to generate PDF owner password")
+		log.Error().Err(err).Msg("Failed to decrypt pdf user password")
 		return err
 	}
 
