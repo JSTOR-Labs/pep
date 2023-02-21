@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,7 +25,8 @@ import (
 
 var (
 	// Used for flags.
-	cfgFile string
+	cfgFile       string
+	auth_password string
 )
 
 // rootCmd represents the root command
@@ -49,13 +50,12 @@ func Execute() error {
 func init() {
 	cobra.OnInitialize(initConfig)
 	// rootCmd.AddCommand(rootCmd)
-
 	viper.SetDefault("auth.signing_key", "")
-	viper.SetDefault("auth.password", "")
-	viper.SetDefault("runtime.flash_drive_mode", false)
+	viper.SetDefault("auth.password", auth_password)
+	viper.SetDefault("runtime.flash_drive_mode", true)
 	viper.SetDefault("elasticsearch.address", "http://localhost:9200")
 	viper.SetDefault("elasticsearch.sniff", false)
-	viper.SetDefault("web.root", "app")
+	viper.SetDefault("web.root", "dist")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
@@ -88,4 +88,5 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		log.Info().Msgf("Using config file: %s", viper.ConfigFileUsed())
 	}
+
 }

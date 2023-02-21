@@ -29,8 +29,6 @@
 
           <nuxt-link to="/">Admin Home</nuxt-link> <v-icon class="icon" color="primary" small>home</v-icon> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
           <!-- Admin configuration <a>Admin</a> <v-icon class="icon" color="primary"  small>settings</v-icon> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
-
-          <nuxt-link to="requests">View Requests</nuxt-link> <v-icon class="icon" color="primary" small>email</v-icon> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
           <a @click="logout">Logout</a> <v-icon class="icon" color="primary" small>arrow_forward</v-icon>
         </div>
       </div>
@@ -117,10 +115,10 @@
     name: 'AppHeader',
     components: { StudentRequest },
     computed: {...mapGetters(['searchResp', 'admin', 'reqs', 'showCart']),
-         searchterms: {
-             get: function () { return this.$store.state.searchTerms },
-             set: function (val) { this.$store.commit('setSearchTerms', val)}
-         },
+        //  searchterms: {
+        //      get: function () { return this.$store.state.searchTerms },
+        //      set: function (val) { this.$store.commit('setSearchTerms', val)}
+        //  },
         showCart: {
             get: function () { return this.$store.state.showCart },
             set: function(val) { this.$store.commit('setShowCart', val)}
@@ -133,9 +131,10 @@
     data: () => ({
       //
       online: false,
-      snackbar: false
+      snackbar: false,
+      searchterms: "",
     }),
-    methods: {...mapActions(['setSearchResp', 'setAdmin', 'setSearchTerms', 'setToken', 'setShowCart', 'setNewSearchCounts']),
+    methods: {...mapActions(['setSearchResp', 'setAdmin', 'setToken', 'setShowCart', 'setNewSearchCounts']),
       logout() {
         this.setAdmin(false);
         this.setToken('');
@@ -143,9 +142,16 @@
         this.$router.push('/')
       },
       search: function() {
-        this.setSearchTerms(this.searchterms)
+        // this.setSearchTerms(this.searchterms)
         this.setNewSearchCounts(true)
-        this.doSearch(true)
+        // this.doSearch(true)
+        this.$router.push({
+          path: '/search',
+          query: {
+            term: this.searchterms,
+            page: 1,
+          }
+        })
       },
       showSnackbar() {
         this.snackbar = true

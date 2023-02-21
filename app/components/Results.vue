@@ -1,9 +1,23 @@
 <template>
   <div id="results">
-
-    <v-row class="results-bar">
+    <v-progress-circular
+      v-if="searching"
+      indeterminate
+      color="primary"
+    />
+    <v-row
+      v-else
+      class="results-bar">
       <v-col md="12">
-        <h2 style="margin-top: -8px">Showing {{(pageNo - 1 ) * limit + 1}} - {{(pageNo ) * limit}} of  {{new Intl.NumberFormat('en-US').format(searchResp.total) || 0}} search results </h2>
+        <h2
+          style="margin-top: -8px">
+          <span v-if="searchResp.total">
+            Showing {{(pageNo - 1 ) * limit + 1}} - {{(pageNo ) * limit}} of  {{new Intl.NumberFormat('en-US').format(searchResp.total) || 0}} search results
+          </span>
+          <span v-else>
+            No Results
+          </span>
+        </h2>
         <!--<p>{{ resultDescription }}</p>-->
       </v-col>
 
@@ -25,7 +39,18 @@
             <span v-if="doc.pageCount">({{ doc.pageCount }} pages) </span><br>
             <span class="article-title"> {{doc.title}} </span> <br>
             <span style="line-height: 30px" v-if="doc.authors">Author: {{doc.authors[0]}}</span><!-- todo format author string? -->
-            <p v-html="doc.srcHtml"/>
+            <p v-html="doc.srcHtml" />
+            <p v-if="doc.series || doc.publisher || doc.year">
+              <strong>
+                <span v-if="doc.series">{{ doc.series }}<span v-if="doc.publisher">,</span></span>
+                <span v-if="doc.publisher">{{ doc.publisher }}</span>
+              </strong>
+              <span v-if="doc.year">{{ `(${doc.year})` }}</span>
+            </p>
+            <p v-if="doc.abstract">
+              {{ doc.abstract }}
+            </p>
+            <p v-html="doc.book_description" />
             <p v-if="doc.semanticTerms">
               <b>Topics: </b>
               <span v-for="(topic, key) in doc.semanticTerms" :key = 'key'>
@@ -39,7 +64,9 @@
           </div>
         </v-col>
 
-        <v-col md="3" align="right" class="results-button">
+        <v-col
+          v-if="!doc.pdfAvailable"
+          md="3" align="right" class="results-button">
           <v-btn
             depressed
             dark
@@ -60,6 +87,19 @@
             title="Click to request"
             @click="addRequest(doc)">
             Request this
+          </v-btn>
+        </v-col>
+        <v-col
+          v-else
+          md="3" align="right" class="results-button">
+          <v-btn
+            outlined
+            dark
+            color="primary"
+            title="Click to view PDF"
+             :to="{ path: `/viewer/${doc['_id']}` }"
+            >
+            View PDF
           </v-btn>
         </v-col>
       </v-row>
@@ -83,7 +123,7 @@
 
   export default {
     name: "Results",
-    computed: {...mapGetters(['searchResp', 'reqs', 'limit', 'searchReq']),
+    computed: {...mapGetters(['searching', 'searchResp', 'reqs', 'limit', 'searchReq', 'offset']),
       numPages() {
           return Math.ceil(this.searchResp.total / this.limit)
       },
@@ -98,18 +138,53 @@
     }),
     mixins: [ manageCart, searchConstructor ],
     mounted() {
-      this.doSearch(true)
+      this.setSearchTerms(this.$route.query.term)
+      this.pageNo = this.$route.query.page || 1
+      this.setOffset((this.pageNo - 1) * this.limit)
+      this.doSearch(false)
     },
-
-    methods: {...mapActions(['setSearchResp', 'setAdmin', 'setReqs', 'setLimit', 'setOffset', 'setSearchTerms']),
-      onPageChange() {
+    watch: {
+      '$route.query.page': function() {
+        this.pageNo = this.$route.query.page || 1
         this.setOffset((this.pageNo - 1) * this.limit)
         this.doSearch(false)
       },
-      searchFor(topic) {
-        this.setSearchTerms(topic)
-        this.doSearch(true);
+      '$route.query.term': function() {
+        if (this.searchTerms!==this.$route.query.term) {
+          console.log("Setting term", this.$route.query.term)
+          this.setSearchTerms(this.$route.query.term)
+          this.doSearch(true)
+        }
       },
+    },
+    methods: {
+      ...mapActions(['setSearchResp', 'setAdmin', 'setReqs', 'setLimit', 'setOffset', 'setSearchTerms']),
+      onPageChange() {
+        // this.setOffset((this.pageNo - 1) * this.limit)
+        this.$router.push({
+          path: '/search',
+          query: {
+            term: this.searchTerms,
+            page: this.pageNo,
+          }
+        })
+      },
+      searchFor(topic) {
+        // this.setSearchTerms(topic)
+        // this.doSearch(true)
+        this.$router.push({
+          path: '/search',
+          query: {
+            term: topic,
+            page: 1,
+          }
+        })
+      },
+      viewPDF(doi) {
+        this.$router.push({
+            path: '/viewer/' + doi,
+        })
+      }
 
     }
   }

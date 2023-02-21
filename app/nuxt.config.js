@@ -1,6 +1,10 @@
 
 export default {
-  mode: 'spa',
+  ssr: false,
+  target: 'static',
+  generate: {
+    fallback: true,
+  },
   /*
   ** Headers of the page
   */
@@ -38,11 +42,12 @@ export default {
   ** https://github.com/nuxt-community/vuetify-module
   */
   vuetify: {
+    customVariables: ['~/assets/variables.scss'],
     theme: {
       themes: {
         light: {
-          primary: '#006179',
-          secondary: '#c55f06',
+          primary: '#990000',
+          secondary: '#000000',
           accent: '#29AB53',
           deny: '#BE0101',
           error: '#FF0000',
@@ -78,6 +83,9 @@ export default {
   ** Build configuration
   */
   build: {
+    transpile: [
+      'pdfjs-dist',
+    ],
     /*
     ** You can extend webpack config here
     */

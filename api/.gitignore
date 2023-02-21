@@ -1,3 +1,7 @@
 *.db
 *.pid
 *.toml
+api
+api.exe
+pdfs/keys/*
+!pdfs/keys/README.md

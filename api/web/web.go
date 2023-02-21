@@ -3,10 +3,13 @@ package web
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"os"
 	"time"
 
-	"github.com/JSTOR-Labs/pep/api/discovery"
 	"github.com/JSTOR-Labs/pep/api/elasticsearch"
+	"github.com/JSTOR-Labs/pep/api/pdfs"
+	"github.com/JSTOR-Labs/pep/api/utils"
 	"github.com/JSTOR-Labs/pep/api/web/routes"
 	"github.com/JSTOR-Labs/pep/api/web/routes/admin"
 	"github.com/labstack/echo/v4"
@@ -16,9 +19,41 @@ import (
 	"github.com/spf13/viper"
 )
 
+type Route struct {
+	Handler func(echo.Context) error
+	Type    string
+	IsAdmin bool
+}
+
+func PathHasMethod(rts []Route, method string) bool {
+	for _, rt := range rts {
+		if rt.Type == method {
+			return true
+		}
+	}
+	return false
+}
+
+func customHTTPErrorHandler(err error, c echo.Context) {
+	code := http.StatusInternalServerError
+	if he, ok := err.(*echo.HTTPError); ok {
+		code = he.Code
+	}
+	log.Error().Err(err).Msg("HTML Error")
+	root, err := utils.GetRoot()
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to find root path")
+	}
+	errorPage := fmt.Sprintf("%s/%d.html", root, code)
+	if err := c.File(errorPage); err != nil {
+		log.Error().Err(err).Msg("Failed to find to error page")
+	}
+}
+
 func Listen(port int) {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	log.Info().Msgf("Starting PEP API")
+	log.Info().Msg("Starting PEP API")
+
 	app := echo.New()
 	app.HideBanner = true
 	app.Use(middleware.Logger())
@@ -38,32 +73,139 @@ func Listen(port int) {
 		tries++
 	}
 
-	app.POST("/search", routes.Search)
-	// TODO: healthcheck
-	app.POST("/request", routes.SubmitRequests)
-	app.POST("/login", routes.Login)
-	app.GET("/version", routes.VersionInfo)
+	rtPaths := map[string][]Route{
+		"/search": {
+			{
+				Handler: routes.Search,
+				Type:    http.MethodPost,
+				IsAdmin: false,
+			},
+		},
+		"/request": {
+			{
+				Handler: routes.SubmitRequests,
+				Type:    http.MethodPost,
+				IsAdmin: false,
+			},
+			{
+				Handler: admin.AdminGetRequests,
+				Type:    http.MethodGet,
+				IsAdmin: true,
+			},
+			{
+				Handler: admin.AdminUpdateRequest,
+				Type:    http.MethodPatch,
+				IsAdmin: true,
+			},
+		},
+		"/login": {
+			{
+				Handler: routes.Login,
+				Type:    http.MethodPost,
+				IsAdmin: false,
+			},
+		},
+		"/version": {
+			{
+				Handler: routes.VersionInfo,
+				Type:    http.MethodPost,
+				IsAdmin: false,
+			},
+		},
+		"/pdf/check": {
+			{
+				Handler: admin.CheckPDFs,
+				Type:    http.MethodPost,
+				IsAdmin: true,
+			},
+		},
+		"/pdf/:doi/:pdf": {
+			{
+				Handler: routes.GetPDF,
+				Type:    http.MethodGet,
+				IsAdmin: false,
+			},
+			{
+				Handler: routes.GetPDF,
+				Type:    http.MethodGet,
+				IsAdmin: true,
+			},
+		},
+		"/snapshot": {
+			{
+				Handler: admin.SnapshotStatus,
+				Type:    http.MethodGet,
+				IsAdmin: true,
+			},
+			{
+				Handler: admin.GetRestoreStatus,
+				Type:    http.MethodPost,
+				IsAdmin: true,
+			},
+		},
+		"/indices": {
+			{
+				Handler: admin.GetIndexData,
+				Type:    http.MethodGet,
+				IsAdmin: true,
+			},
+		},
+	}
+
 	adminGrp := app.Group("/admin")
 	adminGrp.Use(middleware.JWT([]byte(viper.GetString("auth.signing_key"))))
-	adminGrp.GET("/request", admin.AdminGetRequests)
-	adminGrp.PATCH("/request", admin.AdminUpdateRequest)
-	adminGrp.POST("/pdf/check", admin.CheckPDFs)
-	adminGrp.GET("/pdf/:doi/:pdf", admin.GetPDF)
-	adminGrp.GET("/usb", admin.GetUSBDevices)
-	adminGrp.POST("/usb", admin.FormatUSBDevice)
-	adminGrp.POST("/usb/:name", admin.BuildFlashDrive)
-	adminGrp.POST("/snapshot", admin.SnapshotStatus)
-	adminGrp.GET("/snapshot", admin.GetRestoreStatus)
-	adminGrp.GET("/indices", admin.GetIndexData)
-	app.Static("/", viper.GetString("web.root"))
 
-	if !viper.GetBool("runtime.flash_drive_mode") {
-		svc, err := discovery.SetupDiscovery(port)
-		if err != nil {
-			app.Logger.Warn("discovery setup failed")
-		} else {
-			defer discovery.ShutdownDiscovery(svc)
+	for path, rts := range rtPaths {
+		for _, rt := range rts {
+			if !rt.IsAdmin {
+				switch rt.Type {
+				case http.MethodGet:
+					app.GET(path, rt.Handler)
+				case http.MethodPost:
+					app.POST(path, rt.Handler)
+				case http.MethodPatch:
+					app.PATCH(path, rt.Handler)
+				}
+			} else {
+				switch rt.Type {
+				case http.MethodGet:
+					adminGrp.GET(path, rt.Handler)
+				case http.MethodPost:
+					adminGrp.POST(path, rt.Handler)
+				case http.MethodPatch:
+					adminGrp.PATCH(path, rt.Handler)
+				}
+			}
 		}
 	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to find executable path")
+		return
+	}
+	root, err := utils.GetRoot()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to find root")
+		return
+	}
+	app.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		Skipper: func(c echo.Context) bool {
+			val, ok := rtPaths[c.Request().URL.Path]
+			if ok && PathHasMethod(val, c.Request().Method) {
+				return true
+			}
+			return false
+		},
+		Root:  root,
+		HTML5: true,
+	}))
+
+	app.HTTPErrorHandler = customHTTPErrorHandler
+	if _, err := os.Stat(wd + "/" + "pdfindex.dat"); err != nil {
+		log.Info().Msg("Generating PDF Index. This may take several hours.")
+		pdfs.GenerateIndex(wd + "/" + "pdfs")
+	}
+
 	log.Fatal().Err(app.Start(fmt.Sprintf(":%d", port))).Int("port", port).Msg("Failed to listen")
 }

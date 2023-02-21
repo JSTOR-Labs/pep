@@ -17,13 +17,14 @@
     "file-saver": "^2.0.2",
     "lodash": "^4.17.15",
     "material-design-icons": "^3.0.1",
-    "node-sass": "^4.13.1",
-    "nuxt": "^2.0.0",
+    "node-sass": "^8.0.0",
+    "nuxt": "^2.15.8",
     "papaparse": "^5.1.1",
-    "vue": "2.6.10",
-    "vue-template-compiler": "2.6.10",
-    "vue-server-renderer": "2.6.10",
+    "pdfvuer": "^1.10.0",
+    "print-js": "^1.6.0",
+    "vue": "2.6.14",
+    "vue-server-renderer": "2.6.14",
+    "vue-template-compiler": "2.6.14",
     "vuetify": "^2.1.9"
-  },
-  "devDependencies": {}
+  }
 }

@@ -9,16 +9,6 @@
         <results></results>
       </v-col>
     </v-row>
-
-  <!--  <div v-for="(facetData, facet) in searchResp.facets || []" :key="facet">
-      {{facet}}
-      <ul>
-        <li v-for="fval in facetData || []" :key="fval.value">
-          {{fval.value}} {{new Intl.NumberFormat('en-US').format(fval.count)}}
-        </li>
-      </ul>
-    </div>-->
-
   </div>
 </template>
 

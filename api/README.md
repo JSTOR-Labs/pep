@@ -8,21 +8,28 @@ This API is designed to run on both a NUC running a custom Arch Linux image, and
 
 ## Building
 
+
 ### Binary
 
-Open a terminal and cd into the project root, to set configuration options follow the [Configuration](##Configuration) section after building.
+Open a terminal and cd into the api root, to set configuration options follow the [Configuration](##Configuration) section after building. The Makefile has options for various standard builds. Building the api binary with the Makefile will also generate a fresh Certificate, private key, and encrypted user password in the `pdfs/keys` directory. Note that this will overwrite any existing content.
+
+The only requirement before building is that you update the value for `PASSWORD` in the Makefile to include the desired admin password.
 
 #### Native
 
 `go build -ldflags="-w -s" -o api`
 
-#### Linux
+#### Chromebook
 
-`GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o api`
+`make chromebook`
 
 #### Windows
 
-`GOOS=windows GOARCH=amd64 go build -ldflags="-w -s" -o api.exe`
+`make windows`
+
+#### Mac
+
+`make mac`
 
 ### Docker
 
@@ -31,6 +38,11 @@ docker build -e "admin_password=password123" \
     -e "signing_key=asdfjkl12345 \
     -e "elastic_addr=http://localhost:9200" -t pep-api .
 ```
+
+## PDF Encryption
+
+When the api binary is in the same directory as a directory `pdfs` with unencrypted PDF files, you can run `./api encrypt` to encrypt all pdfs in the directory using the encrypted symmetric key.
+
 
 ## Configuration
 

@@ -1,0 +1,1 @@
+This directory is kept empty other than this README file. When the Makefile builds the API binaries, it will populate the folder with the certificate, private key, and an encrypted password for pdfs, none of which should be version controlled.
