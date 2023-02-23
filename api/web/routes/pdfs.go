@@ -35,7 +35,7 @@ func GetPDF(ctx echo.Context) error {
 	}
 	defer f.Close()
 
-	pw, err := pdfs.GetPDFPassword()
+	pw, err := pdfs.GetPDFPassword(nil)
 	if err != nil {
 		return err
 	}

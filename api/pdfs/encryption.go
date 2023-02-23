@@ -2,6 +2,8 @@ package pdfs
 
 import (
 	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha512"
@@ -9,16 +11,18 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
-	"fmt"
+	"io"
 	"io/ioutil"
 	"math/big"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/manifoldco/promptui"
 	pdfcpu "github.com/pdfcpu/pdfcpu/pkg/api"
 	"github.com/rs/zerolog/log"
 	"github.com/sethvargo/go-password/password"
+	"golang.org/x/crypto/scrypt"
 
 	_ "embed"
 )
@@ -27,6 +31,7 @@ type X509 struct {
 	Certificate *bytes.Buffer
 	PrivateKey  *bytes.Buffer
 	PublicKey   *rsa.PublicKey
+	Password    string
 }
 
 //go:embed keys/cert.pem
@@ -56,6 +61,82 @@ func DecryptWithPrivateKey(ct []byte, priv *rsa.PrivateKey) ([]byte, error) {
 	return plaintext, err
 }
 
+func GetKey(password string, salt []byte) ([]byte, []byte, error) {
+	if salt == nil {
+		salt = make([]byte, 32)
+		if _, err := rand.Read(salt); err != nil {
+			return nil, nil, err
+		}
+	}
+
+	key, err := scrypt.Key([]byte(password), salt, 1048576, 8, 1, 32)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return key, salt, nil
+}
+
+func PrepareAES(key []byte) (cipher.AEAD, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+	return gcm, nil
+}
+func AESEncryptBytes(plaintext []byte, pw string) ([]byte, error) {
+
+	key, salt, err := GetKey(pw, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := PrepareAES(key)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		return nil, err
+	}
+
+	ciphertext := gcm.Seal(nonce, nonce, plaintext, nil)
+	ciphertext = append(ciphertext, salt...)
+
+	return ciphertext, nil
+}
+
+func AESDecryptBytes(ciphertext []byte, password string) ([]byte, error) {
+	salt, data := ciphertext[len(ciphertext)-32:], ciphertext[:len(ciphertext)-32]
+
+	key, _, err := GetKey(password, salt)
+	if err != nil {
+		return nil, err
+	}
+
+	// Creating block of algorithm
+	gcm, err := PrepareAES(key)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	// Deattached nonce and decrypt
+	nonce := data[:gcm.NonceSize()]
+	ct := data[gcm.NonceSize():]
+	plaintext, err := gcm.Open(nil, nonce, ct, nil)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return plaintext, err
+}
+
 func GetReadSeeker(file *os.File) *bytes.Reader {
 	fileInfo, _ := file.Stat()
 	var size int64 = fileInfo.Size()
@@ -68,8 +149,13 @@ func GetReadSeeker(file *os.File) *bytes.Reader {
 	return bytes.NewReader(buffer)
 }
 
-func GetPrivateKey() (*rsa.PrivateKey, error) {
-	block, _ := pem.Decode(privateKey)
+func GetPrivateKey(password string) (*rsa.PrivateKey, error) {
+	key, err := AESDecryptBytes(privateKey, password)
+	if err != nil {
+		return nil, err
+	}
+
+	block, _ := pem.Decode(key)
 
 	pk, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
@@ -97,9 +183,50 @@ func IsEarly(cert *x509.Certificate) bool {
 	return now.Before(cert.NotBefore)
 }
 
-func GetPDFPassword() (string, error) {
+func PasswordPrompt() (*string, error) {
+	var empty *string
 
-	pk, err := GetPrivateKey()
+	// validate the input
+	validate := func(input string) error {
+		if input == "" {
+			return errors.New("A password is required. If you were not provided with a PDF Access password, please contact an administrator.")
+		}
+		return nil
+	}
+
+	// Each template displays the formatted data received.
+	templates := &promptui.PromptTemplates{
+		Prompt:  "{{ . }} ",
+		Valid:   "{{ . | blue }} ",
+		Invalid: "{{ . | yellow }} ",
+		Success: "{{ . | bold }} ",
+	}
+
+	prompt := promptui.Prompt{
+		Label:     "Enter your PDF Access Password:",
+		Templates: templates,
+		Validate:  validate,
+	}
+
+	result, err := prompt.Run()
+
+	if err != nil {
+		return empty, err
+	}
+
+	return &result, err
+}
+
+func GetPDFPassword(pw []byte) (string, error) {
+	var err error
+	if pw == nil {
+		pw, err = ioutil.ReadFile("./content/password.txt")
+		if err != nil {
+			return "", err
+		}
+	}
+
+	pk, err := GetPrivateKey(string(pw))
 	if err != nil {
 		return "", err
 	}
@@ -123,7 +250,7 @@ func GetPDFPassword() (string, error) {
 	return string(plaintext), err
 }
 
-func GenerateCert() (X509, error) {
+func GenerateCert(pw string) (X509, error) {
 	ca := &x509.Certificate{
 		SerialNumber: big.NewInt(2019),
 		Subject: pkix.Name{
@@ -161,9 +288,20 @@ func GenerateCert() (X509, error) {
 		Bytes: x509.MarshalPKCS1PrivateKey(caPrivKey),
 	})
 
+	read, err := ioutil.ReadAll(caPrivKeyPEM)
+	if err != nil {
+		return X509{}, err
+	}
+
+	encryptedPK, err := AESEncryptBytes(read, pw)
+	if err != nil {
+		return X509{}, err
+	}
+	buf := bytes.NewBuffer(encryptedPK)
+
 	return X509{
 		Certificate: caPEM,
-		PrivateKey:  caPrivKeyPEM,
+		PrivateKey:  buf,
 		PublicKey:   &caPrivKey.PublicKey,
 	}, nil
 }
@@ -199,18 +337,19 @@ func SaveCert(keypath string, c X509) error {
 	return err
 }
 
-func SaveEncryptionFiles() error {
+func SaveEncryptionFiles(password string) error {
 	wd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 	keypath := wd + "/pdfs/keys/"
 
-	c, err := GenerateCert()
+	c, err := GenerateCert(password)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to generate certificate")
 		return err
 	}
+
 	SaveCert(keypath, c)
 
 	userPW, err := GetPassword()
@@ -219,7 +358,6 @@ func SaveEncryptionFiles() error {
 		return err
 	}
 
-	fmt.Println(userPW)
 	ct, err := EncryptWithPublicKey([]byte(userPW), c.PublicKey)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to generate encrypt user password")
@@ -232,21 +370,52 @@ func SaveEncryptionFiles() error {
 	}
 	return nil
 }
-func EncryptPDFDirectory(p string) error {
+
+func PromptUser(save bool) (string, error) {
+	hasPDFs := false
+	hasPW := false
+	if _, err := os.Stat("./pdfs"); err == nil {
+		hasPDFs = true
+	}
+
+	if _, err := os.Stat("./content/password.txt"); err == nil {
+		hasPW = true
+	}
+
+	var pw string
+	if hasPDFs && !hasPW {
+		password, err := PasswordPrompt()
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to get required PDF password")
+			return "", err
+		}
+		if save {
+			err = ioutil.WriteFile("./content/password.txt", []byte(*password), os.ModePerm)
+			if err != nil {
+				log.Fatal().Err(err).Msg("Failed to save PDF password")
+				return "", err
+			}
+		}
+		pw = *password
+
+	}
+	return pw, nil
+}
+func EncryptPDFDirectory(p string, pw string) error {
 	err := filepath.Walk(p,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
 			if !info.IsDir() && info.Name() != ".DS_Store" {
-				return EncryptPDF(path)
+				return EncryptPDF(path, pw)
 			}
 			return err
 		})
 	return err
 }
 
-func EncryptPDF(path string) error {
+func EncryptPDF(path string, pkPW string) error {
 	// The owner password is generated and used here, then ignored. We will only ever decrypt with the user password.
 	ownerPW, err := GetPassword()
 	if err != nil {
@@ -254,7 +423,7 @@ func EncryptPDF(path string) error {
 		return err
 	}
 
-	userPW, err := GetPDFPassword()
+	userPW, err := GetPDFPassword([]byte(pkPW))
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to decrypt pdf user password")
 		return err

@@ -17,9 +17,12 @@ var encryptCmd = &cobra.Command{
 	 the user password will be further encrypted and saved, along with the private RSA
 	 key and the Cert used for the encryption.`,
 	Run: func(cmd *cobra.Command, args []string) {
-
+		pw, err := pdfs.PromptUser(false)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to get private key password")
+		}
 		path := "./pdfs"
-		err := pdfs.EncryptPDFDirectory(path)
+		err = pdfs.EncryptPDFDirectory(path, pw)
 		if err != nil {
 			log.Fatal().Err(err).Msg("Failed to encrypt PDFs")
 		}
