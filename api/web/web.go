@@ -203,7 +203,7 @@ func Listen(port int) {
 
 	app.HTTPErrorHandler = customHTTPErrorHandler
 	if _, err := os.Stat(wd + "/" + "pdfindex.dat"); err != nil {
-		log.Info().Msg("Generating PDF Index. This may take several hours.")
+		log.Info().Msg("Generating PDF Index. This may take some time.")
 		pdfs.GenerateIndex(wd + "/" + "pdfs")
 	}
 
