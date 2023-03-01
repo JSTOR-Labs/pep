@@ -326,11 +326,11 @@ func SaveFile(path string, content *bytes.Buffer) error {
 }
 
 func SaveCert(keypath string, c X509) error {
-	err := SaveFile(keypath+"cert.pem", c.Certificate)
+	err := SaveFile(filepath.Join(keypath, "cert.pem"), c.Certificate)
 	if err != nil {
 		return err
 	}
-	err = SaveFile(keypath+"key.pem", c.PrivateKey)
+	err = SaveFile(filepath.Join(keypath, "key.pem"), c.PrivateKey)
 	if err != nil {
 		return err
 	}
@@ -342,7 +342,7 @@ func SaveEncryptionFiles(password string) error {
 	if err != nil {
 		return err
 	}
-	keypath := wd + "/pdfs/keys/"
+	keypath := filepath.Join(wd, "pdfs/keys/")
 
 	c, err := GenerateCert(password)
 	if err != nil {
@@ -363,7 +363,7 @@ func SaveEncryptionFiles(password string) error {
 		log.Error().Err(err).Msg("Failed to generate encrypt user password")
 		return err
 	}
-	err = ioutil.WriteFile(keypath+"ciphertext", ct, 0644)
+	err = ioutil.WriteFile(filepath.Join(keypath, "ciphertext"), ct, 0644)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to save ciphertext")
 		return err
