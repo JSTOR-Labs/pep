@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/JSTOR-Labs/pep/api/elasticsearch"
@@ -39,12 +40,14 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 	if he, ok := err.(*echo.HTTPError); ok {
 		code = he.Code
 	}
+
 	log.Error().Err(err).Msg("HTML Error")
 	root, err := utils.GetRoot()
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to find root path")
 	}
-	errorPage := fmt.Sprintf("%s/%d.html", root, code)
+
+	errorPage := filepath.Join(root, fmt.Sprint(code)+".html")
 	if err := c.File(errorPage); err != nil {
 		log.Error().Err(err).Msg("Failed to find to error page")
 	}
@@ -179,7 +182,7 @@ func Listen(port int) {
 		}
 	}
 
-	wd, err := os.Getwd()
+	exPath, err := utils.GetExecutablePath()
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to find executable path")
 		return
@@ -202,9 +205,15 @@ func Listen(port int) {
 	}))
 
 	app.HTTPErrorHandler = customHTTPErrorHandler
-	if _, err := os.Stat(wd + "/" + "pdfindex.dat"); err != nil {
+
+	if _, err := os.Stat(filepath.Join(exPath, "content", "pdfindex.dat")); err != nil {
 		log.Info().Msg("Generating PDF Index. This may take some time.")
-		pdfs.GenerateIndex(wd + "/" + "pdfs")
+		pdfPath, err := utils.GetPDFPath()
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to get pdf path")
+			return
+		}
+		pdfs.GenerateIndex(pdfPath)
 	}
 
 	log.Fatal().Err(app.Start(fmt.Sprintf(":%d", port))).Int("port", port).Msg("Failed to listen")
