@@ -205,7 +205,8 @@ export default {
       let resp
       let finalString
       try {
-         resp = await this.$axios.get("/pdf/" + this.pdfId, { responseType: "blob" })
+
+         resp = await this.$api.basic.pdf.get(this.pdfId)
          this.blob = resp.data
 
          const base64 = await this.blobToBase64(this.blob)

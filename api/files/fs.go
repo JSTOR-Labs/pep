@@ -12,29 +12,28 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	cp "github.com/otiai10/copy"
 	"github.com/rs/zerolog/log"
 )
 
 var (
-	DownloadPath  = "./downloads"
-	Bucket        = "pep-thumbdrives"
-	Prefix        = ""
-	WindowsDir    = "./JSTOR-Windows"
-	ChromebookDir = "./JSTOR-Chromebook"
-	MacPath       = "./JSTOR-Mac"
+	DownloadPath           = "./downloads"
+	Bucket                 = ""
+	Prefix                 = ""
+	WindowsDir             = "./JSTOR-Windows"
+	ChromebookDir          = "./JSTOR-Chromebook"
+	MacDir                 = "./JSTOR-Mac"
+	JSTORDir               = "JSTOR"
+	ContentDir             = "content"
+	PDFDir                 = "pdfs"
+	InstallGuideDir        = "./install_guides"
+	ChromebookInstallGuide = filepath.Join(InstallGuideDir, "chromebook/README.pdf")
+	WindowsInstallGuide    = filepath.Join(InstallGuideDir, "windows/README.pdf")
+	ShellDir               = "./shell"
+	WindowsShell           = filepath.Join(ShellDir, "start.bat")
+	ChromebookShell        = filepath.Join(ShellDir, "start.sh")
+	MacShell               = filepath.Join(ShellDir, "start.command")
+	FrontendDir            = "dist"
 )
-
-func AssembleChromebook(dl string) error {
-	if err := os.MkdirAll(ChromebookDir, os.ModePerm); err != nil {
-		return err
-	}
-	if err := cp.Copy(DownloadPath+"/elasticsearch/chromebook", ChromebookDir); err != nil {
-		return err
-	}
-
-	return nil
-}
 
 type S3Downloader struct {
 	DLManager *s3manager.Downloader

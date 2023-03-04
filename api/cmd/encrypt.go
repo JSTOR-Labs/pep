@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/JSTOR-Labs/pep/api/pdfs"
+	"github.com/JSTOR-Labs/pep/api/utils"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
@@ -17,11 +18,19 @@ var encryptCmd = &cobra.Command{
 	 the user password will be further encrypted and saved, along with the private RSA
 	 key and the Cert used for the encryption.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		pw, err := pdfs.PromptUser(false)
+		pw, err := cmd.Flags().GetString("pw")
 		if err != nil {
-			log.Fatal().Err(err).Msg("Failed to get private key password")
+			pw, err = pdfs.PromptUser(false)
+			if err != nil {
+				log.Fatal().Err(err).Msg("Failed to get private key password")
+			}
 		}
-		path := "./pdfs"
+
+		path, err := utils.GetPDFPath()
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to get pdf path")
+		}
+
 		err = pdfs.EncryptPDFDirectory(path, pw)
 		if err != nil {
 			log.Fatal().Err(err).Msg("Failed to encrypt PDFs")
@@ -31,8 +40,8 @@ var encryptCmd = &cobra.Command{
 }
 
 func init() {
-	encryptCmd.Flags()
 	rootCmd.AddCommand(encryptCmd)
+	encryptCmd.PersistentFlags().String("pw", "", "A password to encrypt the private key")
 
 	// Here you will define your flags and configuration settings.
 

@@ -247,7 +247,7 @@
           this.statusIsPending = !this.statusIsPending
         }
         let params = {'pending': this.statusIsPending}
-        let resp = await this.$axios.$get("/admin/request", {params: params})
+        let resp = await this.$api.admin.request.get({params})
         console.log('studentRequests in requests: ', resp)
         this.requests = resp.data.requests
         this.requestsForExport = _.cloneDeep(resp.data.requests)
@@ -281,20 +281,20 @@
         }
         if (type === 0) {//print request
           if (this.online) { //todo or pdf is available
-            let targetPDF = await this.$axios.get("/admin/pdf/" + article.id, { responseType: "blob" })
+            let targetPDF = await this.$api.admin.pdf.get(article.id)
             this.showPDF(targetPDF.data, article.id);
           }
 
         } else if (type === 1) { //pdf request
           if (this.online) {
-            let targetPDF = await this.$axios.get("/admin/pdf/" + article.id, { responseType: "blob" });
+            let targetPDF = await this.$api.admin.pdf.get(article.id)
             this.savePDF(targetPDF.data, article.id);
           }
         }
 
 
         try {
-          let resp = await this.$axios.$patch("/admin/request", vars)
+          let resp = await this.$api.admin.request.update(vars)
         } catch (err) {
           console.log('logging the error: ', err.response.data);
         }

@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/JSTOR-Labs/pep/api/searchtree"
+	"github.com/JSTOR-Labs/pep/api/utils"
 	"github.com/spf13/viper"
 )
 
@@ -91,8 +92,12 @@ func GenerateIndex(root string) error {
 		log.Error().Err(err).Msg("failed to walk PDFs")
 		return err
 	}
-
-	si, err := os.Create("./content/pdfindex.dat")
+	exPath, err := utils.GetExecutablePath()
+	if err != nil {
+		return err
+	}
+	path := filepath.Join(exPath, "content", "pdfindex.dat")
+	si, err := os.Create(path)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create pdfindex.dat")
 		return err
@@ -104,7 +109,9 @@ func GenerateIndex(root string) error {
 		return err
 	}
 
-	sizesIndex, err := os.Create("./content/pdfsizes.json")
+	path = filepath.Join(exPath, "content", "pdfsizes.json")
+
+	sizesIndex, err := os.Create(path)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create pdfsizes.json")
 		return err
@@ -121,7 +128,12 @@ func GenerateIndex(root string) error {
 }
 
 func GetPDFSizes() (map[string]int64, error) {
-	f, err := os.Open("./content/pdfsizes.json")
+	exPath, err := utils.GetExecutablePath()
+	if err != nil {
+		return nil, err
+	}
+	path := filepath.Join(exPath, "content", "pdfsizes.json")
+	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +151,12 @@ func GetPDFSizes() (map[string]int64, error) {
 }
 
 func LoadIndex() (*searchtree.BinarySearchTree, error) {
-	f, err := os.Open("./content/pdfindex.dat")
+	exPath, err := utils.GetExecutablePath()
+	if err != nil {
+		return nil, err
+	}
+	path := filepath.Join(exPath, "content", "pdfindex.dat")
+	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}

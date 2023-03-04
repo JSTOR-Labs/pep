@@ -54,7 +54,7 @@ export default {
     async getVersion() {
 
       //console.log('resetPagination? ', resetPagination)
-      let version = await this.$axios.$get("/version")
+      let version = await this.$api.basic.version()
       if (!(version || {}).data) {
         this.versionNo="Unknown"
         this.lastUpdate="Unknown"

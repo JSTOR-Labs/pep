@@ -13,6 +13,7 @@ import (
 	"github.com/JSTOR-Labs/pep/api/utils"
 	"github.com/JSTOR-Labs/pep/api/web/routes"
 	"github.com/JSTOR-Labs/pep/api/web/routes/admin"
+	echojwt "github.com/labstack/echo-jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
@@ -62,9 +63,6 @@ func Listen(port int) {
 	app.Use(middleware.Logger())
 	app.Use(middleware.Recover())
 	app.Use(middleware.CORS())
-	app.Use(middleware.GzipWithConfig(middleware.GzipConfig{
-		Level: 5,
-	}))
 	err := errors.New("elasticsearch not connected")
 	tries := 0
 	for err != nil && tries < 10 {
@@ -134,50 +132,25 @@ func Listen(port int) {
 				IsAdmin: true,
 			},
 		},
-		"/snapshot": {
-			{
-				Handler: admin.SnapshotStatus,
-				Type:    http.MethodGet,
-				IsAdmin: true,
-			},
-			{
-				Handler: admin.GetRestoreStatus,
-				Type:    http.MethodPost,
-				IsAdmin: true,
-			},
-		},
-		"/indices": {
-			{
-				Handler: admin.GetIndexData,
-				Type:    http.MethodGet,
-				IsAdmin: true,
-			},
-		},
 	}
 
 	adminGrp := app.Group("/admin")
-	adminGrp.Use(middleware.JWT([]byte(viper.GetString("auth.signing_key"))))
+	adminGrp.Use(echojwt.JWT([]byte(viper.GetString("auth.signing_key"))))
+	apiGrp := app.Group("/api")
 
 	for path, rts := range rtPaths {
 		for _, rt := range rts {
-			if !rt.IsAdmin {
-				switch rt.Type {
-				case http.MethodGet:
-					app.GET(path, rt.Handler)
-				case http.MethodPost:
-					app.POST(path, rt.Handler)
-				case http.MethodPatch:
-					app.PATCH(path, rt.Handler)
-				}
-			} else {
-				switch rt.Type {
-				case http.MethodGet:
-					adminGrp.GET(path, rt.Handler)
-				case http.MethodPost:
-					adminGrp.POST(path, rt.Handler)
-				case http.MethodPatch:
-					adminGrp.PATCH(path, rt.Handler)
-				}
+			grp := apiGrp
+			if rt.IsAdmin {
+				grp = adminGrp
+			}
+			switch rt.Type {
+			case http.MethodGet:
+				grp.GET(path, rt.Handler)
+			case http.MethodPost:
+				grp.POST(path, rt.Handler)
+			case http.MethodPatch:
+				grp.PATCH(path, rt.Handler)
 			}
 		}
 	}
@@ -192,17 +165,8 @@ func Listen(port int) {
 		log.Fatal().Err(err).Msg("Failed to find root")
 		return
 	}
-	app.Use(middleware.StaticWithConfig(middleware.StaticConfig{
-		Skipper: func(c echo.Context) bool {
-			val, ok := rtPaths[c.Request().URL.Path]
-			if ok && PathHasMethod(val, c.Request().Method) {
-				return true
-			}
-			return false
-		},
-		Root:  root,
-		HTML5: true,
-	}))
+
+	app.Static("/*", root)
 
 	app.HTTPErrorHandler = customHTTPErrorHandler
 

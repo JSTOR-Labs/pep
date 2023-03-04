@@ -18,6 +18,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/JSTOR-Labs/pep/api/utils"
 	"github.com/manifoldco/promptui"
 	pdfcpu "github.com/pdfcpu/pdfcpu/pkg/api"
 	"github.com/rs/zerolog/log"
@@ -69,7 +70,7 @@ func GetKey(password string, salt []byte) ([]byte, []byte, error) {
 		}
 	}
 
-	key, err := scrypt.Key([]byte(password), salt, 1048576, 8, 1, 32)
+	key, err := scrypt.Key([]byte(password), salt, 16384, 8, 1, 32)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -220,7 +221,13 @@ func PasswordPrompt() (*string, error) {
 func GetPDFPassword(pw []byte) (string, error) {
 	var err error
 	if pw == nil {
-		pw, err = ioutil.ReadFile("./content/password.txt")
+		exPath, err := utils.GetExecutablePath()
+		if err != nil {
+			return "", err
+		}
+		path := filepath.Join(exPath, "content", "password.txt")
+		pw, err = ioutil.ReadFile(path)
+
 		if err != nil {
 			return "", err
 		}
@@ -374,11 +381,22 @@ func SaveEncryptionFiles(password string) error {
 func PromptUser(save bool) (string, error) {
 	hasPDFs := false
 	hasPW := false
-	if _, err := os.Stat("./pdfs"); err == nil {
+	path, err := utils.GetPDFPath()
+	if err != nil {
+		return "", err
+	}
+
+	if _, err := os.Stat(path); err == nil {
 		hasPDFs = true
 	}
 
-	if _, err := os.Stat("./content/password.txt"); err == nil {
+	exPath, err := utils.GetExecutablePath()
+	if err != nil {
+		return "", err
+	}
+
+	pwPath := filepath.Join(exPath, "content", "password.txt")
+	if _, err := os.Stat(pwPath); err == nil {
 		hasPW = true
 	}
 
@@ -390,7 +408,7 @@ func PromptUser(save bool) (string, error) {
 			return "", err
 		}
 		if save {
-			err = ioutil.WriteFile("./content/password.txt", []byte(*password), os.ModePerm)
+			err = ioutil.WriteFile(pwPath, []byte(*password), os.ModePerm)
 			if err != nil {
 				log.Fatal().Err(err).Msg("Failed to save PDF password")
 				return "", err
@@ -402,30 +420,32 @@ func PromptUser(save bool) (string, error) {
 	return pw, nil
 }
 func EncryptPDFDirectory(p string, pw string) error {
-	err := filepath.Walk(p,
+	// Extracting the password from a saved file is time consuming when repeated. Doing it once here
+	// saves a lot of time.
+	userPW, err := GetPDFPassword([]byte(pw))
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to decrypt pdf user password")
+		return err
+	}
+
+	err = filepath.Walk(p,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
 			if !info.IsDir() && info.Name() != ".DS_Store" {
-				return EncryptPDF(path, pw)
+				return EncryptPDF(path, userPW)
 			}
 			return err
 		})
 	return err
 }
 
-func EncryptPDF(path string, pkPW string) error {
+func EncryptPDF(path string, userPW string) error {
 	// The owner password is generated and used here, then ignored. We will only ever decrypt with the user password.
 	ownerPW, err := GetPassword()
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to generate PDF owner password")
-		return err
-	}
-
-	userPW, err := GetPDFPassword([]byte(pkPW))
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to decrypt pdf user password")
 		return err
 	}
 
