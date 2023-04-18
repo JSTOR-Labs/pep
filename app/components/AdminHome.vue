@@ -120,7 +120,7 @@
         <td class="internet-yes hide-action-col" v-if="statusIsPending">
           <span class="request-buttons" >
              <v-btn
-               v-if="online || request.pdf"
+               v-if="request.pdf"
                depressed
                dark
                x-small
@@ -129,7 +129,7 @@
              >Print
             </v-btn>
             <v-btn
-              v-if="!online && !request.pdf"
+              v-else-if="!online"
               disabled
               depressed
               x-small
@@ -138,7 +138,7 @@
             </v-btn>
 
             <v-btn
-              v-if="online || request.pdf"
+              v-if="request.pdf"
               depressed
               dark
               x-small
@@ -147,12 +147,21 @@
             >PDF
             </v-btn>
              <v-btn
-               v-if="!online && !request.pdf"
+               v-else-if="!online"
                disabled
                depressed
                x-small
                title="This article isn't available until you get online"
              >PDF
+            </v-btn>
+
+             <v-btn
+               v-if="online && !request.pdf"
+              depressed
+              dark
+              x-small
+              @click="update(1, request)"
+             >View
             </v-btn>
 
             <v-btn
@@ -249,8 +258,8 @@
         let params = {'pending': this.statusIsPending}
         let resp = await this.$api.admin.request.get({params})
         console.log('studentRequests in requests: ', resp)
-        this.requests = resp.data.requests
-        this.requestsForExport = _.cloneDeep(resp.data.requests)
+        this.requests = resp.data.data.requests
+        this.requestsForExport = _.cloneDeep(resp.data.data.requests)
         //let dois = []
         for (let r = 0; r < this.requestsForExport.length; r++) { //add URLS in case CSV is exported
           delete this.requestsForExport[r]['pdf']
@@ -266,7 +275,7 @@
           if (this.requestsForExport[r]['status'] === 3) {
             this.requestsForExport[r]['status'] = 'denied'
           }
-          this.requestsForExport[r]['url'] = '=HYPERLINK("' + this.jstor + this.requestsForExport[r].id + '")'
+          this.requestsForExport[r]['url'] = this.jstor + this.requestsForExport[r].id
 
           //the code below replaces the JSTOR URL with Click here
           // this.requestsForExport[r]['url'] = '=HYPERLINK("' + this.jstor + this.requestsForExport[r].id +'"' + ',' + '"' + 'Click here' + '")'
@@ -281,14 +290,22 @@
         }
         if (type === 0) {//print request
           if (this.online) { //todo or pdf is available
-            let targetPDF = await this.$api.admin.pdf.get(article.id)
-            this.showPDF(targetPDF.data, article.id);
+            if (article.pdf) {
+              let targetPDF = await this.$api.admin.pdf.get(article.id)
+              this.showPDF(targetPDF.data, article.id);
+            } else {
+              window.location.href=`https://www.jstor.org/stable/${article.id}`
+            }
           }
 
         } else if (type === 1) { //pdf request
           if (this.online) {
-            let targetPDF = await this.$api.admin.pdf.get(article.id)
-            this.savePDF(targetPDF.data, article.id);
+            if (article.pdf) {
+              let targetPDF = await this.$api.admin.pdf.get(article.id)
+              this.savePDF(targetPDF.data, article.id);
+            } else {
+              window.location.href=`https://www.jstor.org/stable/${article.id}`
+            }
           }
         }
 
@@ -336,7 +353,7 @@
       },
       formatCitation(cite) {
 
-        if (cite.indexOf('</cite>') > -1) {
+        if (cite && cite.indexOf('</cite>') > -1) {
           cite = cite.substring(6);
           let first = cite.substring(0, cite.indexOf('</cite>'))
           let second = cite.substring(cite.indexOf('</cite>') + 7)
