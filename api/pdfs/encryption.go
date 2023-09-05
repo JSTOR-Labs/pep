@@ -11,8 +11,8 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"io"
-	"io/ioutil"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -226,7 +226,7 @@ func GetPDFPassword(pw []byte) (string, error) {
 			return "", err
 		}
 		path := filepath.Join(exPath, "content", "password.txt")
-		pw, err = ioutil.ReadFile(path)
+		pw, err = os.ReadFile(path)
 
 		if err != nil {
 			return "", err
@@ -295,7 +295,7 @@ func GenerateCert(pw string) (X509, error) {
 		Bytes: x509.MarshalPKCS1PrivateKey(caPrivKey),
 	})
 
-	read, err := ioutil.ReadAll(caPrivKeyPEM)
+	read, err := io.ReadAll(caPrivKeyPEM)
 	if err != nil {
 		return X509{}, err
 	}
@@ -322,12 +322,12 @@ func GetPassword() (string, error) {
 }
 
 func SaveFile(path string, content *bytes.Buffer) error {
-	readBuf, err := ioutil.ReadAll(content)
+	readBuf, err := io.ReadAll(content)
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile(path, readBuf, os.ModePerm)
+	err = os.WriteFile(path, readBuf, os.ModePerm)
 
 	return err
 }
@@ -370,7 +370,7 @@ func SaveEncryptionFiles(password string) error {
 		log.Error().Err(err).Msg("Failed to generate encrypt user password")
 		return err
 	}
-	err = ioutil.WriteFile(filepath.Join(keypath, "ciphertext"), ct, 0644)
+	err = os.WriteFile(filepath.Join(keypath, "ciphertext"), ct, 0644)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to save ciphertext")
 		return err
@@ -408,7 +408,7 @@ func PromptUser(save bool) (string, error) {
 			return "", err
 		}
 		if save {
-			err = ioutil.WriteFile(pwPath, []byte(*password), os.ModePerm)
+			err = os.WriteFile(pwPath, []byte(*password), os.ModePerm)
 			if err != nil {
 				log.Fatal().Err(err).Msg("Failed to save PDF password")
 				return "", err
@@ -456,5 +456,10 @@ func EncryptPDF(path string, userPW string) error {
 	config.EncryptKeyLength = 256
 
 	err = pdfcpu.EncryptFile(path, path, config)
+	if err != nil {
+		os.Remove(path)
+		fmt.Println(path)
+		err = nil
+	}
 	return err
 }

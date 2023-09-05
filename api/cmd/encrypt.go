@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/JSTOR-Labs/pep/api/pdfs"
 	"github.com/JSTOR-Labs/pep/api/utils"
 	"github.com/rs/zerolog/log"
@@ -30,12 +28,10 @@ var encryptCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal().Err(err).Msg("Failed to get pdf path")
 		}
-
 		err = pdfs.EncryptPDFDirectory(path, pw)
 		if err != nil {
 			log.Fatal().Err(err).Msg("Failed to encrypt PDFs")
 		}
-		fmt.Println("Document encryption complete")
 	},
 }
 
