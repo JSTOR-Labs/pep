@@ -1,5 +1,10 @@
 # JSTOR Access in Prison Initiative
 
+## System Requirements
+
+1. A Chromebook with sufficient storage space to hold the application. For the thumbdrives that do not include any pre-approved content, 4-5 GB is enough. If you are using the thumbdrives with pre-approved JSTOR articles included, 7.5GB will be required.
+1. Web browser installed on access device (e.g., Chrome).  This does not require internet access, the application just needs to be installed and accessible to the user.
+1. Passwords. You will need an administrator password, as well as a PDF access password if your thumbdrive includes content.
 ## Chromebook Installation Guide
 
 1. In the settings menu, select Advanced>Developers.
@@ -36,7 +41,9 @@
     sudo ~/init.sh -u username
     ````
     ![Screenshot of the terminal window showing the commands and the results.](images/step8.png)
-9. You're almost done! Just close the terminal, and then re-open it, using the process described in step 7. After a moment, you'll see some text appear. It will take a couple of minutes to run through the initialization process. At the end, you'll see a note that an http server has started on port 1323.
+9. You're almost done! Just close the terminal, and then re-open it, using the process described in step 7. After a moment, you'll see some text appear. If you are using the thumbdrive that includes pre-approved JSTOR content, you will be promoted to enter a PDF access password at this point. Enter the password and hit Enter. The remainder of the process will continue as normal.
+
+It will take a couple of minutes to run through the initialization process. At the end, you'll see a note that an http server has started on port 1323. Please note that even after the system starts and the browser is accessible, it may take a few minutes for all content to be fully searchable. During this time, search results may be inconsistent.
     ![Screenshot of the terminal text showing the end of the startup process.](images/step9.png)
 10. Open a browser and enter the following for the URL:
     ````
