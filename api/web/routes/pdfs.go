@@ -15,7 +15,6 @@ import (
 func GetPDF(ctx echo.Context) error {
 	doi := ctx.Param("doi")
 	pdf := ctx.Param("pdf")
-
 	index, err := pdfs.LoadIndex()
 	if err != nil {
 		return err
@@ -35,7 +34,7 @@ func GetPDF(ctx echo.Context) error {
 	}
 	defer f.Close()
 
-	pw, err := pdfs.GetPDFPassword()
+	pw, err := pdfs.GetPDFPassword(nil)
 	if err != nil {
 		return err
 	}
@@ -50,5 +49,6 @@ func GetPDF(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
+
 	return ctx.Blob(http.StatusOK, "application/pdf", buf.Bytes())
 }

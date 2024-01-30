@@ -126,8 +126,8 @@
               notes: this.studentNotes,
               articles: idArray
             }
-            console.log('request args in StudentRequest to /request: ', args)
-            let resp = await this.$axios.$post("/request", args)
+            console.log('request args in StudentRequest to /api/request: ', args)
+            let resp = await this.$api.basic.request(args)
             console.log('request status: ', resp)
             this.clearRequests()
             this.setShowCart(false);

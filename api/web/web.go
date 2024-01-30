@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/JSTOR-Labs/pep/api/elasticsearch"
@@ -12,6 +13,7 @@ import (
 	"github.com/JSTOR-Labs/pep/api/utils"
 	"github.com/JSTOR-Labs/pep/api/web/routes"
 	"github.com/JSTOR-Labs/pep/api/web/routes/admin"
+	echojwt "github.com/labstack/echo-jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
@@ -39,12 +41,14 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 	if he, ok := err.(*echo.HTTPError); ok {
 		code = he.Code
 	}
+
 	log.Error().Err(err).Msg("HTML Error")
 	root, err := utils.GetRoot()
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to find root path")
 	}
-	errorPage := fmt.Sprintf("%s/%d.html", root, code)
+
+	errorPage := filepath.Join(root, fmt.Sprint(code)+".html")
 	if err := c.File(errorPage); err != nil {
 		log.Error().Err(err).Msg("Failed to find to error page")
 	}
@@ -59,9 +63,6 @@ func Listen(port int) {
 	app.Use(middleware.Logger())
 	app.Use(middleware.Recover())
 	app.Use(middleware.CORS())
-	app.Use(middleware.GzipWithConfig(middleware.GzipConfig{
-		Level: 5,
-	}))
 	err := errors.New("elasticsearch not connected")
 	tries := 0
 	for err != nil && tries < 10 {
@@ -131,55 +132,30 @@ func Listen(port int) {
 				IsAdmin: true,
 			},
 		},
-		"/snapshot": {
-			{
-				Handler: admin.SnapshotStatus,
-				Type:    http.MethodGet,
-				IsAdmin: true,
-			},
-			{
-				Handler: admin.GetRestoreStatus,
-				Type:    http.MethodPost,
-				IsAdmin: true,
-			},
-		},
-		"/indices": {
-			{
-				Handler: admin.GetIndexData,
-				Type:    http.MethodGet,
-				IsAdmin: true,
-			},
-		},
 	}
 
 	adminGrp := app.Group("/admin")
-	adminGrp.Use(middleware.JWT([]byte(viper.GetString("auth.signing_key"))))
+	adminGrp.Use(echojwt.JWT([]byte(viper.GetString("auth.signing_key"))))
+	apiGrp := app.Group("/api")
 
 	for path, rts := range rtPaths {
 		for _, rt := range rts {
-			if !rt.IsAdmin {
-				switch rt.Type {
-				case http.MethodGet:
-					app.GET(path, rt.Handler)
-				case http.MethodPost:
-					app.POST(path, rt.Handler)
-				case http.MethodPatch:
-					app.PATCH(path, rt.Handler)
-				}
-			} else {
-				switch rt.Type {
-				case http.MethodGet:
-					adminGrp.GET(path, rt.Handler)
-				case http.MethodPost:
-					adminGrp.POST(path, rt.Handler)
-				case http.MethodPatch:
-					adminGrp.PATCH(path, rt.Handler)
-				}
+			grp := apiGrp
+			if rt.IsAdmin {
+				grp = adminGrp
+			}
+			switch rt.Type {
+			case http.MethodGet:
+				grp.GET(path, rt.Handler)
+			case http.MethodPost:
+				grp.POST(path, rt.Handler)
+			case http.MethodPatch:
+				grp.PATCH(path, rt.Handler)
 			}
 		}
 	}
 
-	wd, err := os.Getwd()
+	exPath, err := utils.GetExecutablePath()
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to find executable path")
 		return
@@ -189,22 +165,19 @@ func Listen(port int) {
 		log.Fatal().Err(err).Msg("Failed to find root")
 		return
 	}
-	app.Use(middleware.StaticWithConfig(middleware.StaticConfig{
-		Skipper: func(c echo.Context) bool {
-			val, ok := rtPaths[c.Request().URL.Path]
-			if ok && PathHasMethod(val, c.Request().Method) {
-				return true
-			}
-			return false
-		},
-		Root:  root,
-		HTML5: true,
-	}))
+
+	app.Static("/*", root)
 
 	app.HTTPErrorHandler = customHTTPErrorHandler
-	if _, err := os.Stat(wd + "/" + "pdfindex.dat"); err != nil {
-		log.Info().Msg("Generating PDF Index. This may take several hours.")
-		pdfs.GenerateIndex(wd + "/" + "pdfs")
+
+	if _, err := os.Stat(filepath.Join(exPath, "content", "pdfindex.dat")); err != nil {
+		log.Info().Msg("Generating PDF Index. This may take some time.")
+		pdfPath, err := utils.GetPDFPath()
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to get pdf path")
+			return
+		}
+		pdfs.GenerateIndex(pdfPath)
 	}
 
 	log.Fatal().Err(app.Start(fmt.Sprintf(":%d", port))).Int("port", port).Msg("Failed to listen")

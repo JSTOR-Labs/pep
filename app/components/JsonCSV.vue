@@ -69,8 +69,9 @@
        */
       advancedOptions: {
         type: Object,
-        default: () => {
-        }
+        default: () => ({
+          escapeFormulae: true,
+        })
       },
       /**
        * Labels for columns

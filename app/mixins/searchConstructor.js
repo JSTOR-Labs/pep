@@ -60,8 +60,8 @@ export default {
           ...this.searchResp,
           docs: []
         })
-      let resp = await this.$axios.$post("/search", args)
-          console.log('search response in searchConstructor: ', resp)
+        let resp = await this.$api.basic.search(args)
+        resp = resp.data || {}
           this.setSearchResp(resp)
           //console.log('new search? ', this.newSearch)
           //.log('new search counts? ', this.newSearchCounts)

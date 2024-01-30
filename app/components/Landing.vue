@@ -158,9 +158,8 @@
     methods: {...mapActions([ 'setAdmin', 'setSearchTerms', 'setToken', 'setHelpTab']),
       async checkPassword() {
         try {
-          let resp = await this.$axios.$post("/login", { password: this.password })
+          let resp = await this.$api.basic.login(this.password)
 
-          console.log(resp)
           console.log('token ', resp.data.token)
           this.setToken(resp.data.token);
           this.$axios.setToken(resp.data.token, 'Bearer')

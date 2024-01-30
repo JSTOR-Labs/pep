@@ -16,7 +16,11 @@ var keyCmd = &cobra.Command{
 	 the user password will be further encrypted and saved, along with the private RSA
 	 key and the Cert used for the encryption.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		err := pdfs.SaveEncryptionFiles()
+		pw, err := cmd.Flags().GetString("pw")
+		if err != nil || pw == "" {
+			log.Fatal().Err(err).Msg("Password not available")
+		}
+		err = pdfs.SaveEncryptionFiles(pw)
 		if err != nil {
 			log.Fatal().Err(err).Msg("Failed to handle encryption files")
 		}
@@ -25,8 +29,8 @@ var keyCmd = &cobra.Command{
 }
 
 func init() {
-	keyCmd.Flags()
 	rootCmd.AddCommand(keyCmd)
+	keyCmd.PersistentFlags().String("pw", "", "A password to encrypt the private key")
 
 	// Here you will define your flags and configuration settings.
 

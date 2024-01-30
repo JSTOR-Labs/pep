@@ -34,7 +34,8 @@ export default {
   ** Plugins to load before mounting the App
   */
   plugins: [
-    { src: '~/plugins/baseurl.js' }
+    { src: '~/plugins/baseurl.js' },
+    { src: '~/plugins/axios.js' }
     //{ src: '~/plugins/vue-json-csv.js' }
   ],
   /*

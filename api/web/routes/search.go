@@ -26,6 +26,7 @@ func Search(c echo.Context) error {
 		req.Limit = 10
 	}
 	doiFound := false
+
 	q := elasticsearch.NewProcessTerms(req)
 	for _, f := range req.Fields {
 		if f == "doi" {
@@ -35,6 +36,7 @@ func Search(c echo.Context) error {
 	if !doiFound {
 		req.Fields = append(req.Fields, "doi")
 	}
+
 	search := globals.ES.Search().
 		ErrorTrace(true).
 		Index("_all").

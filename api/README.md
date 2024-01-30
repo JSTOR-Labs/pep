@@ -13,7 +13,7 @@ This API is designed to run on both a NUC running a custom Arch Linux image, and
 
 Open a terminal and cd into the api root, to set configuration options follow the [Configuration](##Configuration) section after building. The Makefile has options for various standard builds. Building the api binary with the Makefile will also generate a fresh Certificate, private key, and encrypted user password in the `pdfs/keys` directory. Note that this will overwrite any existing content.
 
-The only requirement before building is that you update the value for `PASSWORD` in the Makefile to include the desired admin password.
+The only requirement before building is that you update the value for `ADMIN_PASSWORD` in the Makefile to include the desired admin password. Similarly, be sure to add a value for `PK_PASSWORD` in the Makefile to include the PDF password. Alternatively, both these values can be set in the Make command, as described below. Note that these passwords should be entirely separate, but that both should be memorable.
 
 #### Native
 
@@ -21,15 +21,15 @@ The only requirement before building is that you update the value for `PASSWORD`
 
 #### Chromebook
 
-`make chromebook`
+`make chromebook ADMIN_PASSWORD=admin_password PK_PASSWORD=key_password`
 
 #### Windows
 
-`make windows`
+`make window ADMIN_PASSWORD=admin_password PK_PASSWORD=key_password`
 
 #### Mac
 
-`make mac`
+`make mac ADMIN_PASSWORD=admin_password PK_PASSWORD=key_password`
 
 ### Docker
 

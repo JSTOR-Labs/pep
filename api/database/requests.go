@@ -4,10 +4,12 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
+	"path/filepath"
 	"time"
 
 	"github.com/JSTOR-Labs/pep/api/elasticsearch"
 	"github.com/JSTOR-Labs/pep/api/pdfs"
+	"github.com/JSTOR-Labs/pep/api/utils"
 	"github.com/boltdb/bolt"
 	"github.com/rs/zerolog/log"
 )
@@ -18,7 +20,12 @@ func init() {
 
 func setupBDB() *bolt.DB {
 	var err error
-	requestsLocation := "./content/requests.db"
+	exPath, err := utils.GetExecutablePath()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Unable to find executable path")
+	}
+
+	requestsLocation := filepath.Join(exPath, "content/requests.db")
 	bdb, err = bolt.Open(requestsLocation, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		log.Warn().Err(err).Msg("Unable to open requests database")
