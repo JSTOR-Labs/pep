@@ -23,6 +23,7 @@ EXPOSE $NUXT_PORT
 
 # build necessary, even if no static files are needed,
 # since it builds the server as well
+RUN npm run install
 RUN npm run build
 
 # start the app

@@ -25,6 +25,7 @@ all-apis:
 	mv ${API_DIR}/${BINARY_NAME}-mac ./
 
 frontend:
+	npm --prefix ${FRONTEND_DIR} install
 	npm --prefix ${FRONTEND_DIR} run build
 	npm --prefix ${FRONTEND_DIR} run generate
 
@@ -144,12 +145,10 @@ zip-mac:
 encrypt-on-mac:
 	cp ./${BINARY_NAME}-mac ./downloads/${BINARY_NAME}-mac
 	./downloads/${BINARY_NAME}-mac encrypt --pw "${PK_PASSWORD}"
-	rm -f ./downloads/${BINARY_NAME}-mac
 
 encrypt-on-linux:
 	cp ./${BINARY_NAME}-chromebook ./downloads/${BINARY_NAME}-chromebook
 	./downloads/${BINARY_NAME}-chromebook encrypt --pw "${PK_PASSWORD}"
-	rm -f ./downloads/${BINARY_NAME}-chromebook
 
 timestamp: 
 	date +"%FT%T%z"
