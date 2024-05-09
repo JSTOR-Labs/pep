@@ -16,8 +16,9 @@ export default {
       console.log('add request in managecart')
     },
     removeRequest(article) {
-      let reqList = this.reqs.slice(0)
-      reqList.splice(reqList.indexOf(JSON.stringify(article)), 1)
+      let reqList = this.reqs.map((req) => JSON.parse(req))
+        .filter((req) => req._id !== article._id)
+        .map((req) => JSON.stringify(req))
       this.setReqs(reqList);
       console.log('remove request in managecart')
     },
