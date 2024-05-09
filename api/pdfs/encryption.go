@@ -269,7 +269,7 @@ func GenerateCert(pw string) (X509, error) {
 			PostalCode:    []string{"48104"},
 		},
 		NotBefore:             time.Now(),
-		NotAfter:              time.Now().AddDate(1, 6, 0),
+		NotAfter:              time.Now().AddDate(5, 0, 0),
 		IsCA:                  true,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
@@ -337,6 +337,7 @@ func SaveCert(keypath string, c X509) error {
 	if err != nil {
 		return err
 	}
+
 	err = SaveFile(filepath.Join(keypath, "key.pem"), c.PrivateKey)
 	if err != nil {
 		return err
@@ -459,6 +460,7 @@ func EncryptPDF(path string, userPW string) error {
 	if err != nil {
 		os.Remove(path)
 		fmt.Println(path)
+		fmt.Println("Error: ", err)
 		err = nil
 	}
 	return err
