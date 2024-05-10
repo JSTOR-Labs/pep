@@ -171,13 +171,16 @@ func Listen(port int) {
 	app.HTTPErrorHandler = customHTTPErrorHandler
 
 	if _, err := os.Stat(filepath.Join(exPath, "content", "pdfindex.dat")); err != nil {
-		log.Info().Msg("Generating PDF Index. This may take some time.")
 		pdfPath, err := utils.GetPDFPath()
 		if err != nil {
 			log.Fatal().Err(err).Msg("Failed to get pdf path")
 			return
 		}
-		pdfs.GenerateIndex(pdfPath)
+		// If we can't find the path for PDFs, we can't generate the index
+		if _, err := os.Stat(pdfPath); err == nil {
+			log.Info().Msg("Generating PDF Index. This may take some time.")
+			pdfs.GenerateIndex(pdfPath)
+		}
 	}
 
 	log.Fatal().Err(app.Start(fmt.Sprintf(":%d", port))).Int("port", port).Msg("Failed to listen")
