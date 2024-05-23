@@ -27,7 +27,7 @@
 
     <v-card-text v-for="(req, idx) in reqs" :key="idx" id="request-list">
       <div style="line-height: 1.7; font-size: 14px">
-        <a class="cancel" @click="removeRequest(JSON.parse(req)._id)">Cancel</a>
+        <a class="cancel" @click="removeRequest(JSON.parse(req))">Cancel</a>
         <span class="content-type"> {{JSON.parse(req).contentType}} </span> ({{JSON.parse(req).pageCount}} pages)<br>
         <span class="article-title">{{(JSON.parse(req)).title}} </span> <br>
         <span style="line-height: 30px" v-if="JSON.parse(req).authors">Author: {{(JSON.parse(req)).authors[0]}}</span><!-- todo format author string? -->
