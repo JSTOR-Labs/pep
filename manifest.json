@@ -1,1 +1,7 @@
-{"Updated":"2024-06-27T08:02:55.72933-07:00","Name":"PEP","Description":"This tool includes an offline browser application that provides a searchable index of content on JSTOR with optional PDF content.","Version":"4.1.2","Package":"github.com/JSTOR-Labs/pep"}
+{
+    "description": "This tool includes an offline browser application that provides a searchable index of content on JSTOR with optional PDF content.",
+    "name": "PEP",
+    "package": "github.com/JSTOR-Labs/pep",
+    "updated": "2024-06-27T08:32:50.302604-07:00",
+    "version": "3.0.1"
+}
