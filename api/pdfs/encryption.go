@@ -379,16 +379,23 @@ func SaveEncryptionFiles(password string) error {
 	return nil
 }
 
-func PromptUser(save bool) (string, error) {
+func HasPDFs() (bool, error) {
 	hasPDFs := false
-	hasPW := false
 	path, err := utils.GetPDFPath()
 	if err != nil {
-		return "", err
+		return hasPDFs, err
 	}
 
 	if _, err := os.Stat(path); err == nil {
 		hasPDFs = true
+	}
+	return hasPDFs, err
+}
+func PromptUser(save bool) (string, error) {
+	hasPW := false
+	hasPDFs, err := HasPDFs()
+	if err != nil {
+		return "", err
 	}
 
 	exPath, err := utils.GetExecutablePath()

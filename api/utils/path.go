@@ -31,3 +31,11 @@ func GetPDFPath() (string, error) {
 	exPath := filepath.Dir(ex)
 	return filepath.Join(exPath, "pdfs"), nil
 }
+func GetManifestPath() (string, error) {
+	ex, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+	exPath := filepath.Dir(ex)
+	return filepath.Join(exPath, "package.json"), nil
+}
