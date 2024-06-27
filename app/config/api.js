@@ -17,7 +17,7 @@ export default ($axios) => ({
     pdf: {
       get: (id) => $axios.get("/api/pdf/"+ id, { responseType: "blob" })
     },
-    search: (args) => $axios.post("/api/search", args),  
+    search: (args) => $axios.post("/api/search", args),
   },
 
 })

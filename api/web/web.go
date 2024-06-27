@@ -109,7 +109,7 @@ func Listen(port int) {
 		"/version": {
 			{
 				Handler: routes.VersionInfo,
-				Type:    http.MethodPost,
+				Type:    http.MethodGet,
 				IsAdmin: false,
 			},
 		},
