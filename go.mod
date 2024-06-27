@@ -3,6 +3,7 @@ module github.com/JSTOR-Labs/pep
 go 1.17
 
 require (
+	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/boltdb/bolt v1.3.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/grandcat/zeroconf v1.0.0
