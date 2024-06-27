@@ -29,7 +29,7 @@ jobs:
         id: tag-commit
         uses: issue-ops/semver@v1.2.0
         with:
-          manifest-path: manifest.json
+          manifest-path: package.json
           workspace: ${{ github.workspace }}
           ref: main
 
