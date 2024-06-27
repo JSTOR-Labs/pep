@@ -27,7 +27,7 @@ jobs:
 
       - name: Tag Commit
         id: tag-commit
-        uses: issue-ops/semver@vX.X.X
+        uses: issue-ops/semver@v1.2.0
         with:
           manifest-path: manifest.json
           workspace: ${{ github.workspace }}
