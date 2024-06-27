@@ -29,7 +29,7 @@
         <b>Your access to JSTOR is provided courtesy of your educational institution and your use is subject to the terms of agreement between JSTOR and that institution.</b>
       </div>
       <div>
-        <p class="version"> Version: {{versionNo}}, Last updated: {{lastUpdate}}</p>
+        <p class="version">Version: {{versionNo}}<span v-if="hasContent">&nbsp;(PDF Version)</span>, Last updated: {{lastUpdate}}</p>
       </div>
 
 
@@ -44,7 +44,8 @@ export default {
   name: 'AppFooter',
   data: () => ({
     versionNo: 'loading',
-    lastUpdate: 'loading'
+    lastUpdate: 'loading',
+    hasContent: false,
   }),
   mounted() {
     this.getVersion()
@@ -62,6 +63,7 @@ export default {
       }
       console.log('version in appFooter: ', version)
       this.versionNo = version.data.version;
+      this.hasContent = version.data.has_content;
       this.lastUpdate = (new Date(version.data.lastUpdate)).toLocaleDateString()
     },
   }
