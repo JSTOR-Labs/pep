@@ -37,5 +37,5 @@ func GetManifestPath() (string, error) {
 		return "", err
 	}
 	exPath := filepath.Dir(ex)
-	return filepath.Join(exPath, "package.json"), nil
+	return filepath.Join(exPath, "manifest.json"), nil
 }

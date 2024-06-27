@@ -23,7 +23,7 @@ var incrementHandler = map[string]func(semver.Version) semver.Version{
 var manifestCmd = &cobra.Command{
 	Use:   "manifest",
 	Short: "Create and update manifest.json",
-	Long:  `If a package.json file exists, the script will increment the version number. Otherwise, it will create a new manifest.`,
+	Long:  `If a manifest.json file exists, the script will increment the version number. Otherwise, it will create a new manifest.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		v, err := cmd.Flags().GetString("v")
 		if err != nil || v == "" {
