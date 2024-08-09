@@ -1,5 +1,8 @@
 # Prison Education: Offline Access Initiative
 
+## Archived
+This repository has been archived, but the project is ongoing! The new repository is available at [https://github.com/ithaka/offline-pep](https://github.com/ithaka/offline-pep).
+
 ## Project Overview
 
 ### Background
